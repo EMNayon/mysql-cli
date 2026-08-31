@@ -229,6 +229,50 @@ class MySQLTerminalSimulator {
 +----------+
 1 row in set (0.00 sec)</pre>
       `;
+    } else if (lowerCmd.includes("systemctl status mysql") || lowerCmd.includes("service mysql status")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">● mysql.service - MySQL Community Server</div>
+        <div class="text-muted">   Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)</div>
+        <div class="text-emerald">   Active: active (running) since Mon 2026-08-31 09:00:00 BDT; 15min ago</div>
+        <div class="text-light"> Main PID: 1420 (mysqld)</div>
+        <div class="text-cyan">   Status: "Server is operational"</div>
+      `;
+    } else if (lowerCmd.startsWith("create database")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">Query OK, 1 row affected (0.02 sec) [Character set: utf8mb4_unicode_ci]</div>
+      `;
+    } else if (lowerCmd.startsWith("create user")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">Query OK, 0 rows affected (0.01 sec)</div>
+      `;
+    } else if (lowerCmd.startsWith("grant ") || lowerCmd.startsWith("flush privileges")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">Query OK, 0 rows affected (0.00 sec) - Privileges reloaded in memory</div>
+      `;
+    } else if (lowerCmd.startsWith("insert into")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">Query OK, 2 rows affected (0.01 sec)</div>
+        <div class="text-muted">Records: 2  Duplicates: 0  Warnings: 0</div>
+      `;
+    } else if (lowerCmd.startsWith("update ")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">Query OK, 1 row affected (0.01 sec)</div>
+        <div class="text-muted">Rows matched: 1  Changed: 1  Warnings: 0</div>
+      `;
+    } else if (lowerCmd.startsWith("delete from ") || lowerCmd.startsWith("truncate ")) {
+      outputBlock.innerHTML = `
+        <div class="text-emerald">Query OK, 1 row affected (0.01 sec)</div>
+      `;
+    } else if (lowerCmd === "show full processlist" || lowerCmd === "show processlist") {
+      outputBlock.innerHTML = `
+        <pre class="terminal-table text-cyan">+-----+-------------+-----------------+----------------------------------+---------+------+---------------+-----------------------+
+| Id  | User        | Host            | db                               | Command | Time | State         | Info                  |
++-----+-------------+-----------------+----------------------------------+---------+------+---------------+-----------------------+
+| 142 | lighttecha1 | localhost       | erp_publication_adhunik_v2_beta  | Query   |    0 | init          | SHOW FULL PROCESSLIST |
+| 145 | erp_admin   | 192.168.1.10:33 | erp_publication_adhunik_v2_beta  | Sleep   |   12 |               | NULL                  |
++-----+-------------+-----------------+----------------------------------+---------+------+---------------+-----------------------+
+2 rows in set (0.00 sec)</pre>
+      `;
     } else if (lowerCmd.startsWith("source ") || lowerCmd.includes("adhunikp_beta_db.sql")) {
       outputBlock.innerHTML = `
         <div class="text-muted">Reading file '${this.escapeHtml(trimmed.replace(/^source\s+/, ""))}'...</div>

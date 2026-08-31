@@ -50,7 +50,7 @@
 
   <!-- Header Navigation -->
   <header class="glass-header py-2">
-    <div class="container-fluid px-lg-4">
+    <div class="container-xl">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         
         <!-- Brand / Logo -->
@@ -144,7 +144,7 @@
   </header>
 
   <!-- MAIN SPA CONTENT AREA -->
-  <main class="container-fluid px-lg-4 py-4">
+  <main class="container-xl py-4">
 
     <!-- ========================================================================= -->
     <!-- TAB 1: OVERVIEW & REAL WORLD PROBLEM -->
@@ -489,7 +489,7 @@
         <div class="row g-3 align-items-center">
           
           <!-- Category Pills -->
-          <div class="col-lg-7">
+          <div class="col-lg-8">
             <div class="d-flex flex-wrap gap-2">
               <button 
                 class="filter-tag-pill" 
@@ -501,20 +501,38 @@
 
               <button 
                 class="filter-tag-pill" 
-                :class="{ 'active': selectedCategory === 'import-export' }" 
-                @click="selectedCategory = 'import-export'"
+                :class="{ 'active': selectedCategory === 'getting-started' }" 
+                @click="selectedCategory = 'getting-started'"
               >
-                <i class="fa-solid fa-file-import me-1 text-cyan"></i>
-                <span class="bn-text" x-text="lang === 'bn' ? 'ইমপোর্ট ও এক্সপোর্ট' : 'Import & Export'"></span>
+                <i class="fa-solid fa-power-off me-1 text-primary"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? '১. শুরু ও লগইন' : '1. Connect & Login'"></span>
               </button>
 
               <button 
                 class="filter-tag-pill" 
-                :class="{ 'active': selectedCategory === 'navigation' }" 
-                @click="selectedCategory = 'navigation'"
+                :class="{ 'active': selectedCategory === 'db-table-crud' }" 
+                @click="selectedCategory = 'db-table-crud'"
               >
-                <i class="fa-solid fa-compass me-1 text-warning"></i>
-                <span class="bn-text" x-text="lang === 'bn' ? 'নেভিগেশন ও স্ট্যাটাস' : 'Navigation & Status'"></span>
+                <i class="fa-solid fa-cubes me-1 text-warning"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? '২. ডাটাবেজ ও টেবিল (DDL)' : '2. DB & Table DDL'"></span>
+              </button>
+
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'query-dml' }" 
+                @click="selectedCategory = 'query-dml'"
+              >
+                <i class="fa-solid fa-code me-1 text-emerald"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? '৩. কুয়েরি ও CRUD (DML)' : '3. Query & CRUD'"></span>
+              </button>
+
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'import-export' }" 
+                @click="selectedCategory = 'import-export'"
+              >
+                <i class="fa-solid fa-file-import me-1 text-cyan"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? '৪. ইমপোর্ট/এক্সপোর্ট (ERP Real)' : '4. Heavy Import/Export'"></span>
               </button>
 
               <button 
@@ -522,8 +540,8 @@
                 :class="{ 'active': selectedCategory === 'administration' }" 
                 @click="selectedCategory = 'administration'"
               >
-                <i class="fa-solid fa-user-shield me-1 text-emerald"></i>
-                <span class="bn-text" x-text="lang === 'bn' ? 'ইউজার ও প্রিভিলেজ' : 'Users & Admin'"></span>
+                <i class="fa-solid fa-user-shield me-1 text-rose"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? '৫. ইউজার ও সিকিউরিটি' : '5. Security & Users'"></span>
               </button>
 
               <button 
@@ -532,7 +550,7 @@
                 @click="selectedCategory = 'optimization'"
               >
                 <i class="fa-solid fa-wrench me-1 text-info"></i>
-                <span class="bn-text" x-text="lang === 'bn' ? 'অপ্টিমাইজেশন ও মেইনটেন্যান্স' : 'Optimization'"></span>
+                <span class="bn-text" x-text="lang === 'bn' ? '৬. অপ্টিমাইজেশন ও এরর' : '6. Optimization & Health'"></span>
               </button>
             </div>
           </div>
