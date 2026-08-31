@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="bn" data-bs-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySQL CLI Pro - Database Mastery & Large Import Hub</title>
+  <meta name="description" content="Professional MySQL Command Line Reference, Large File Import/Export Guides, Terminal Simulator and Troubleshooting Engine.">
+  
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  
+  <!-- Font Awesome 6.5 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Prism.js Syntax CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/syntax-theme.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  
+  <!-- Prism.js & Languages -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+
+  <!-- Application Datasets & Scripts -->
+  <script src="js/commands-data.js"></script>
+  <script src="js/errors-data.js"></script>
+  <script src="js/terminal-simulator.js"></script>
+  <script src="js/benchmark-chart.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.7/dist/cdn.min.js"></script>
+</head>
+<body x-data="mysqlApp">
+
+  <!-- Toast Notification -->
+  <div x-show="toast.show" x-transition.opacity.duration.200ms class="custom-toast" style="display: none;">
+    <i class="fa-solid fa-circle-check text-emerald fs-5"></i>
+    <span class="bn-text" x-text="toast.message"></span>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="glass-header py-2">
+    <div class="container-fluid px-lg-4">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        
+        <!-- Brand / Logo -->
+        <div class="d-flex align-items-center gap-2 cursor-pointer" @click="currentTab = 'overview'">
+          <div class="p-2 rounded-3 bg-gradient d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #06b6d4, #10b981); width: 40px; height: 40px;">
+            <i class="fa-solid fa-database text-dark fs-5"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-bold fs-5 tracking-tight text-light">MySQL <span class="text-cyan">CLI Pro</span></span>
+              <span class="badge-custom badge-cyan d-none d-sm-inline-flex">v8.0+ Ready</span>
+            </div>
+            <div class="text-muted small bn-text d-none d-md-block" style="font-size: 0.75rem;">
+              <span x-show="lang === 'bn'">বড় ডাটাবেজ ইমপোর্ট, এক্সপোর্ট ও টার্মিনাল কমান্ড গাইড</span>
+              <span x-show="lang === 'en'">Heavy Database Import, Export & CLI Command Guide</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Search Bar -->
+        <div class="d-none d-md-flex align-items-center position-relative flex-grow-1 mx-3" style="max-width: 380px;">
+          <i class="fa-solid fa-magnifying-glass position-absolute start-0 ms-3 text-muted"></i>
+          <input 
+            type="text" 
+            class="form-control form-control-sm ps-5 bg-dark border-secondary text-light rounded-pill" 
+            :placeholder="lang === 'bn' ? 'কমান্ড খুঁজুন (যেমন: import, mysqldump, status)...' : 'Search commands (e.g. import, pv, drop)...'"
+            x-model="searchQuery"
+            @focus="if(currentTab !== 'commands') currentTab = 'commands'"
+          >
+          <button x-show="searchQuery" @click="searchQuery = ''" class="btn btn-sm text-muted position-absolute end-0 me-2 p-0 border-0">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Right Controls: Lang & Theme -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- Language Toggle Button -->
+          <button @click="toggleLanguage()" class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-2 px-3">
+            <i class="fa-solid fa-language text-cyan"></i>
+            <span class="fw-semibold" x-text="lang === 'bn' ? 'বাংলা' : 'English'"></span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button @click="toggleTheme()" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 36px; height: 36px;" title="Toggle Dark/Light Mode">
+            <i :class="isDark ? 'fa-solid fa-sun text-warning' : 'fa-solid fa-moon text-primary'"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs Bar -->
+      <nav class="nav-pill-custom mt-2 pt-1 border-top border-secondary border-opacity-25">
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'overview' }" @click="currentTab = 'overview'">
+          <i class="fa-solid fa-house"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'ওভারভিউ ও পরিচিতি' : 'Overview'"></span>
+        </button>
+
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'comparison' }" @click="currentTab = 'comparison'">
+          <i class="fa-solid fa-bolt text-warning"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'CLI বনাম phpMyAdmin' : 'CLI vs phpMyAdmin'"></span>
+        </button>
+
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'commands' }" @click="currentTab = 'commands'">
+          <i class="fa-solid fa-terminal text-cyan"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'কমান্ড লাইব্রেরি' : 'Command Library'"></span>
+          <span class="badge bg-secondary rounded-pill" style="font-size: 0.65rem;" x-text="commands.length"></span>
+        </button>
+
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'builder' }" @click="currentTab = 'builder'">
+          <i class="fa-solid fa-wand-magic-sparkles text-emerald"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'কমান্ড জেনারেটর' : 'Command Builder'"></span>
+        </button>
+
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'terminal' }" @click="currentTab = 'terminal'">
+          <i class="fa-solid fa-square-poll-horizontal text-primary"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'টার্মিনাল সিমুলেটর' : 'Terminal Sandbox'"></span>
+        </button>
+
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'troubleshoot' }" @click="currentTab = 'troubleshoot'">
+          <i class="fa-solid fa-stethoscope text-rose"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'এরর ডক্টর (লগ ফিক্সার)' : 'Error Doctor'"></span>
+          <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Log Analysis</span>
+        </button>
+
+        <button class="nav-pill-btn" :class="{ 'active': currentTab === 'cheatsheet' }" @click="currentTab = 'cheatsheet'">
+          <i class="fa-solid fa-file-lines text-info"></i>
+          <span class="bn-text" x-text="lang === 'bn' ? 'কুইক চিটশিট' : 'Cheat Sheet'"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN SPA CONTENT AREA -->
+  <main class="container-fluid px-lg-4 py-4">
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: OVERVIEW & REAL WORLD PROBLEM -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'overview'" x-transition.opacity.duration.300ms>
+      
+      <!-- Hero Banner -->
+      <div class="p-4 p-md-5 rounded-4 feature-card hero-gradient mb-4 position-relative overflow-hidden">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <div class="d-inline-flex align-items-center gap-2 badge-custom badge-emerald mb-3">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span class="bn-text" x-show="lang === 'bn'">প্রোডাকশন গ্রেড ডাটাবেজ হ্যান্ডলিং</span>
+              <span x-show="lang === 'en'">Production-Grade Database Operations</span>
+            </div>
+            
+            <h1 class="display-6 fw-bold mb-3">
+              <span x-show="lang === 'bn'">কেন phpMyAdmin বাদ দিয়ে <span class="text-cyan">MySQL CLI</span> ব্যবহার করবেন?</span>
+              <span x-show="lang === 'en'">Why Master <span class="text-cyan">MySQL CLI</span> over phpMyAdmin?</span>
+            </h1>
+
+            <p class="lead text-muted bn-text mb-4" style="font-size: 1.05rem;">
+              <span x-show="lang === 'bn'">
+                phpMyAdmin-এ ৪/৫ মেগাবাইটের বেশি ফাইল দিতে গেলে ব্রাউজার হ্যাং হয়ে যায়, মেমোরি লিমিট ও এক্সিকিউশন টাইমআউট (Fatal Error: Maximum execution time exceeded) দিয়ে ক্র্যাশ করে। 
+                কিন্তু <strong>MySQL CLI ও টার্মিনাল পাইপ</strong> ব্যবহার করে অনায়াসে <strong>১ জিবি, ২ জিবি এমনকি ৫০ জিবি+</strong> ডাটাবেজ সেকেন্ডের মধ্যে নিখুঁতভাবে ইমপোর্ট ও এক্সপোর্ট করা যায়!
+              </span>
+              <span x-show="lang === 'en'">
+                phpMyAdmin chokes on files larger than 2MB–40MB with memory exhaustion and execution timeout crashes. With <strong>MySQL Command Line</strong> and pipeline streaming, you can import and export <strong>1GB, 2GB, or 50GB+</strong> production databases seamlessly in seconds.
+              </span>
+            </p>
+
+            <div class="d-flex flex-wrap gap-3">
+              <button class="btn btn-info text-dark fw-bold px-4 py-2 rounded-pill shadow-sm" @click="currentTab = 'comparison'">
+                <i class="fa-solid fa-chart-simple me-2"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'পারফরম্যান্স তুলনা দেখুন' : 'Compare Benchmarks'"></span>
+              </button>
+              
+              <button class="btn btn-outline-light px-4 py-2 rounded-pill" @click="currentTab = 'builder'">
+                <i class="fa-solid fa-wand-magic-sparkles me-2 text-cyan"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'ইমপোর্ট কমান্ড তৈরি করুন' : 'Generate Import Command'"></span>
+              </button>
+
+              <button class="btn btn-outline-danger px-4 py-2 rounded-pill" @click="currentTab = 'troubleshoot'">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'লগের এরর সমাধান করুন' : 'Fix Import Errors'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Highlight Metric Stats -->
+          <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="stat-box">
+                  <div class="fs-3 fw-bold text-cyan">50 GB+</div>
+                  <div class="small text-muted bn-text" x-text="lang === 'bn' ? 'সর্বোচ্চ ইমপোর্ট সাইজ (CLI)' : 'Max Import Size (CLI)'"></div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-box">
+                  <div class="fs-3 fw-bold text-emerald">10x</div>
+                  <div class="small text-muted bn-text" x-text="lang === 'bn' ? 'দ্রুত গতি (সকেট পাইপ)' : 'Faster Speed (Socket)'"></div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-box">
+                  <div class="fs-3 fw-bold text-warning">0 sec</div>
+                  <div class="small text-muted bn-text" x-text="lang === 'bn' ? 'টাইমআউট ক্র্যাশ ঝুঁকি' : 'Timeout Crash Risk'"></div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-box">
+                  <div class="fs-3 fw-bold text-info">100%</div>
+                  <div class="small text-muted bn-text" x-text="lang === 'bn' ? 'নিখুঁত ডাটা রিস্টোর' : 'Data Integrity Guarantee'"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Workflow Session Breakdown -->
+      <div class="card feature-card p-4 mb-4">
+        <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-list-check text-cyan"></i>
+          <span class="bn-text" x-show="lang === 'bn'">আপনার প্রজেক্টের রিয়েল সেশন স্টেপ-বাই-স্টেপ গাইড</span>
+          <span x-show="lang === 'en'">Your Real-World Project Workflow Step-by-Step</span>
+        </h4>
+        <p class="text-muted bn-text mb-4">
+          <span x-show="lang === 'bn'">
+            নিচে আপনার টার্মিনাল ট্রানজিটের সঠিক ক্রমানুসারে কমান্ডগুলো সাজিয়ে দেওয়া হলো, যা দিয়ে আপনি আপনার ১২৬টি টেবিল ওয়ালা ইআরপি ডাটাবেজ (<code>erp_publication_adhunik_v2_beta</code>) সম্পূর্ণ ইরর-মুক্তভাবে হ্যান্ডেল করতে পারবেন:
+          </span>
+          <span x-show="lang === 'en'">
+            Here is the clean, error-free workflow tailored directly to your ERP database session with 126 tables:
+          </span>
+        </p>
+
+        <div class="row g-3">
+          <!-- Step 1 -->
+          <div class="col-md-6 col-xl-4">
+            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary">Step 1</span>
+                <button class="btn-copy" @click="copyToClipboard('mysql -u lighttecha1 -p')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <h6 class="fw-bold text-light mb-1">Login to MySQL</h6>
+              <div class="code-box my-2">
+                <div class="code-box-content p-2 small font-monospace">mysql -u lighttecha1 -p</div>
+              </div>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">নিরাপদে পাসওয়ার্ড প্রম্পটের মাধ্যমে MySQL কনসোলে প্রবেশ করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Securely enter MySQL interactive prompt with hidden password entry.</p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="col-md-6 col-xl-4">
+            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary">Step 2</span>
+                <button class="btn-copy" @click="copyToClipboard('show databases;')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <h6 class="fw-bold text-light mb-1">List & Switch Database</h6>
+              <div class="code-box my-2">
+                <div class="code-box-content p-2 small font-monospace">show databases;<br>use erp_publication_adhunik_v2_beta;</div>
+              </div>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">ডাটাবেজের লিস্ট দেখে কাঙ্ক্ষিত ডাটাবেজ সিলেক্ট করুন। (শেষে সেমিকোলন জরুরি)</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">List all schemas and switch to target database.</p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="col-md-6 col-xl-4">
+            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-success">Step 3 (Best Practice)</span>
+                <button class="btn-copy" @click="copyToClipboard('SET foreign_key_checks = 0; SET autocommit = 0; source adhunikp_beta_db.sql; COMMIT; SET foreign_key_checks = 1;')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <h6 class="fw-bold text-light mb-1">Turbo Import (No Errors)</h6>
+              <div class="code-box my-2">
+                <div class="code-box-content p-2 small font-monospace">SET foreign_key_checks = 0;<br>source adhunikp_beta_db.sql;<br>SET foreign_key_checks = 1;</div>
+              </div>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">ফরেন কি এরর ও ডুপ্লিকেট কনস্ট্রেইন্ট ব্লক এড়াতে এই ট্রিকটি ব্যবহার করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Disables FK constraint locks during import to prevent Error 1826.</p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="col-md-6 col-xl-4">
+            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-info">Step 4</span>
+                <button class="btn-copy" @click="copyToClipboard('show tables;')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <h6 class="fw-bold text-light mb-1">Verify Tables & Rows</h6>
+              <div class="code-box my-2">
+                <div class="code-box-content p-2 small font-monospace">show tables;<br>select count(*) from users;</div>
+              </div>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">সবগুলো ১২৬টি টেবিল ও রো সঠিকভাবে ইমপোর্ট হয়েছে কিনা যাচাই করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Verify all 126 tables and row counts are restored.</p>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="col-md-6 col-xl-4">
+            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-warning text-dark">Alternative (Bash)</span>
+                <button class="btn-copy" @click="copyToClipboard('pv adhunikp_beta_db.sql | mysql -u lighttecha1 -p erp_publication_adhunik_v2_beta')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <h6 class="fw-bold text-light mb-1">Direct Pipe with Progress</h6>
+              <div class="code-box my-2">
+                <div class="code-box-content p-2 small font-monospace">pv adhunikp_beta_db.sql | mysql -u lighttecha1 -p erp_publication_adhunik_v2_beta</div>
+              </div>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">MySQL-এ না ঢুকে সরাসরি লিনাক্স ব্যাশ থেকে লাইভ প্রগ্রেস বার সহ ইমপোর্ট করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Direct one-liner streaming from Linux bash with live byte progress.</p>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="col-md-6 col-xl-4">
+            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary">Server Check</span>
+                <button class="btn-copy" @click="copyToClipboard('status;')"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <h6 class="fw-bold text-light mb-1">Check Server Health</h6>
+              <div class="code-box my-2">
+                <div class="code-box-content p-2 small font-monospace">status;</div>
+              </div>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">কানেকশন আইডি, সকেট পাথ, আপটাইম এবং ক্যারেক্টারসেট (utf8mb4) চেক করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Inspect active UNIX socket, uptime, and utf8mb4 charset.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: CLI VS PHPMYADMIN DEEP DIVE & BENCHMARKS -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'comparison'" x-transition.opacity.duration.300ms style="display: none;">
+      
+      <!-- Benchmark Charts Section -->
+      <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+          <div class="card feature-card p-4 h-100">
+            <h5 class="fw-bold mb-1 text-light d-flex align-items-center gap-2">
+              <i class="fa-solid fa-gauge-high text-cyan"></i>
+              <span class="bn-text" x-show="lang === 'bn'">1.5GB ডাটাবেজ ইমপোর্ট স্পিড তুলনা (সেকেন্ডে)</span>
+              <span x-show="lang === 'en'">1.5GB Database Import Speed Benchmark (Seconds)</span>
+            </h5>
+            <p class="small text-muted bn-text mb-3" x-show="lang === 'bn'">কম সময় মানে অধিক দ্রুত পারফরম্যান্স। CLI টিউনিং সহ মাত্র ২৪ সেকেন্ডে ইমপোর্ট সম্পন্ন হয়!</p>
+            <p class="small text-muted mb-3" x-show="lang === 'en'">Lower seconds is faster. Tuned CLI imports the full dataset in just 24 seconds!</p>
+            
+            <div style="position: relative; height: 260px;">
+              <canvas id="speedChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card feature-card p-4 h-100">
+            <h5 class="fw-bold mb-1 text-light d-flex align-items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-emerald"></i>
+              <span class="bn-text" x-show="lang === 'bn'">ম্যাক্সিমাম ফাইল সাইজ ক্যাপাসিটি</span>
+              <span x-show="lang === 'en'">Max File Size Capacity</span>
+            </h5>
+            <p class="small text-muted bn-text mb-3" x-show="lang === 'bn'">phpMyAdmin ব্রাউজার/PHP লিমিটে আটকে যায়, CLI সরাসরি সকেটে আনলিমিটেড ডাটা স্ট্রিম করে।</p>
+            <p class="small text-muted mb-3" x-show="lang === 'en'">phpMyAdmin hits strict PHP memory ceilings, while CLI streams unlimited data.</p>
+            
+            <div style="position: relative; height: 260px;">
+              <canvas id="limitsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Comparison Matrix Table -->
+      <div class="card feature-card p-4 mb-4">
+        <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-table-columns text-cyan"></i>
+          <span class="bn-text" x-show="lang === 'bn'">পূর্ণাঙ্গ ফিচার ও সুবিধা তুলনা ম্যাট্রিক্স</span>
+          <span x-show="lang === 'en'">Complete Feature & Advantage Matrix</span>
+        </h4>
+
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle border-secondary border-opacity-25">
+            <thead>
+              <tr class="text-secondary small">
+                <th style="width: 25%;">Feature / Scenario</th>
+                <th style="width: 35%;">phpMyAdmin / GUI</th>
+                <th style="width: 40%;" class="text-cyan">MySQL CLI (Terminal)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="item in benchmarks" :key="item.feature">
+                <tr>
+                  <td class="fw-semibold text-light" x-text="item.feature"></td>
+                  <td>
+                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 me-1"><i class="fa-solid fa-xmark"></i></span>
+                    <span class="text-muted small" x-text="item.phpMyAdmin"></span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25"><i class="fa-solid fa-check"></i></span>
+                      <strong class="text-light small" x-text="item.cli"></strong>
+                    </div>
+                    <div class="text-emerald small mt-1 bn-text" style="font-size: 0.75rem;">
+                      <i class="fa-solid fa-star me-1"></i> <span x-text="item.advantage"></span>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Deep Dive Explanation Card in Bengali -->
+      <div class="card feature-card p-4 border-cyan border-opacity-25">
+        <h5 class="fw-bold text-cyan mb-3">
+          <i class="fa-solid fa-lightbulb me-2"></i>
+          <span class="bn-text" x-show="lang === 'bn'">কেন phpMyAdmin ক্র্যাশ করে আর টার্মিনাল কখনোই করে না? (টেকনিক্যাল কারণ)</span>
+          <span x-show="lang === 'en'">Why does phpMyAdmin Crash while Terminal Never Fails? (Technical Breakdown)</span>
+        </h5>
+        
+        <div class="row g-4 text-muted bn-text">
+          <div class="col-md-4">
+            <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 h-100">
+              <h6 class="text-light fw-bold mb-2"><i class="fa-solid fa-server text-warning me-2"></i> 1. PHP Execution Architecture</h6>
+              <p class="small m-0">
+                <span x-show="lang === 'bn'">
+                  phpMyAdmin মূলত একটি PHP ওয়েব অ্যাপ্লিকেশন। এটি যখন কোনো ১জিবি ফাইল আপলোড পায়, তখন <code>upload_max_filesize</code>, <code>post_max_size</code> এবং <code>memory_limit</code> সেটিংস চেক করে। নির্দিষ্ট সময়ের (<code>max_execution_time</code> যেমন ৩০ বা ৬০ সেকেন্ড) মধ্যে শেষ না হলে ওয়েব সার্ভার (Nginx/Apache) রিকোয়েস্ট কিল করে দেয়।
+                </span>
+                <span x-show="lang === 'en'">
+                  phpMyAdmin is a PHP script subject to web server limits (max_execution_time, memory_limit). If a large import takes over 30s/60s, the web server abruptly kills the connection.
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 h-100">
+              <h6 class="text-light fw-bold mb-2"><i class="fa-solid fa-network-wired text-cyan me-2"></i> 2. Direct UNIX Socket I/O</h6>
+              <p class="small m-0">
+                <span x-show="lang === 'bn'">
+                  টার্মিনালে যখন আপনি <code>mysql &lt; backup.sql</code> বা <code>source</code> কমান্ড দেন, তখন কোনো ওয়েব সার্ভার বা PHP ইন্টারপ্রেটার থাকে না। এটি সরাসরি লিনাক্স কার্নেলের UNIX Socket (<code>/var/run/mysqld/mysqld.sock</code>) দিয়ে মেমোরি পাইপের মাধ্যমে ডাটাবেজ ইঞ্জিনের কাছে বাইনারি স্ট্রিমে ডাটা পাঠায়।
+                </span>
+                <span x-show="lang === 'en'">
+                  MySQL CLI connects directly via local UNIX domain sockets (/var/run/mysqld/mysqld.sock), bypassing HTTP layers and sending continuous raw data streams.
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 h-100">
+              <h6 class="text-light fw-bold mb-2"><i class="fa-solid fa-lock-open text-emerald me-2"></i> 3. Granular Lock & Tuning Control</h6>
+              <p class="small m-0">
+                <span x-show="lang === 'bn'">
+                  টার্মিনালে আপনি <code>SET foreign_key_checks=0;</code> এবং <code>SET autocommit=0;</code> দিয়ে InnoDB-র ইনডেক্স ও কনস্ট্রেইন্ট রিবিল্ড সাময়িক অফ করে দিতে পারেন। এতে প্রতি রো-তে ডিস্ক আই/ও না হয়ে সম্পূর্ণ ফাইল মেমোরিতে প্রসেস হয়ে একবারে কমিট হয়।
+                </span>
+                <span x-show="lang === 'en'">
+                  CLI gives you precise session control to disable FK validations and autocommit buffers, speeding up bulk insertions up to 10x.
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: COMMAND LIBRARY WITH ADVANCED SEARCH & FILTERS -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'commands'" x-transition.opacity.duration.300ms style="display: none;">
+      
+      <!-- Filter and Search Header -->
+      <div class="card feature-card p-3 mb-4">
+        <div class="row g-3 align-items-center">
+          
+          <!-- Category Pills -->
+          <div class="col-lg-7">
+            <div class="d-flex flex-wrap gap-2">
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'all' }" 
+                @click="selectedCategory = 'all'"
+              >
+                <span class="bn-text" x-text="lang === 'bn' ? 'সব কমান্ড (' + commands.length + ')' : 'All Commands (' + commands.length + ')'"></span>
+              </button>
+
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'import-export' }" 
+                @click="selectedCategory = 'import-export'"
+              >
+                <i class="fa-solid fa-file-import me-1 text-cyan"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'ইমপোর্ট ও এক্সপোর্ট' : 'Import & Export'"></span>
+              </button>
+
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'navigation' }" 
+                @click="selectedCategory = 'navigation'"
+              >
+                <i class="fa-solid fa-compass me-1 text-warning"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'নেভিগেশন ও স্ট্যাটাস' : 'Navigation & Status'"></span>
+              </button>
+
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'administration' }" 
+                @click="selectedCategory = 'administration'"
+              >
+                <i class="fa-solid fa-user-shield me-1 text-emerald"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'ইউজার ও প্রিভিলেজ' : 'Users & Admin'"></span>
+              </button>
+
+              <button 
+                class="filter-tag-pill" 
+                :class="{ 'active': selectedCategory === 'optimization' }" 
+                @click="selectedCategory = 'optimization'"
+              >
+                <i class="fa-solid fa-wrench me-1 text-info"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'অপ্টিমাইজেশন ও মেইনটেন্যান্স' : 'Optimization'"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Mobile Search Input -->
+          <div class="col-lg-5">
+            <div class="position-relative">
+              <i class="fa-solid fa-magnifying-glass position-absolute start-0 ms-3 top-50 translate-middle-y text-muted"></i>
+              <input 
+                type="text" 
+                class="form-control form-control-sm ps-5 bg-dark border-secondary text-light rounded-pill" 
+                :placeholder="lang === 'bn' ? 'কমান্ডের নাম, ট্যাগ বা সিনট্যাক্স দিয়ে ফিল্টার...' : 'Filter by name, tag, or syntax...'"
+                x-model="searchQuery"
+              >
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Tag Filters -->
+        <div class="d-flex flex-wrap align-items-center gap-1 mt-2 pt-2 border-top border-secondary border-opacity-25">
+          <span class="small text-muted me-2" style="font-size: 0.75rem;">Quick Tags:</span>
+          <template x-for="tag in ['import', 'export', 'pv', 'gzip', 'tuning', 'status', 'processlist', 'users']" :key="tag">
+            <button 
+              class="badge bg-dark border border-secondary text-secondary rounded-pill py-1 px-2 cursor-pointer"
+              :class="{ 'border-cyan text-cyan': selectedTag === tag }"
+              @click="selectedTag = (selectedTag === tag ? '' : tag)"
+              x-text="'#' + tag"
+            ></button>
+          </template>
+          <button x-show="selectedTag" @click="selectedTag = ''" class="btn btn-sm text-danger p-0 ms-2 small">
+            <i class="fa-solid fa-xmark"></i> Clear tag
+          </button>
+        </div>
+      </div>
+
+      <!-- Command Cards Grid -->
+      <div class="row g-4">
+        <template x-for="cmd in filteredCommands" :key="cmd.id">
+          <div class="col-lg-6">
+            <div class="card feature-card p-4 h-100 d-flex flex-column justify-content-between">
+              
+              <div>
+                <!-- Card Header -->
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <div>
+                    <span class="badge-custom badge-cyan mb-1" x-text="cmd.badge"></span>
+                    <h5 class="fw-bold text-light mb-1" x-text="lang === 'bn' ? cmd.title.bn : cmd.title.en"></h5>
+                  </div>
+                  <span class="badge bg-secondary bg-opacity-50 text-light small" x-text="cmd.difficulty"></span>
+                </div>
+
+                <!-- Description -->
+                <p class="text-muted small bn-text mb-3" x-text="lang === 'bn' ? cmd.description.bn : cmd.description.en"></p>
+
+                <!-- Code Block -->
+                <div class="code-box mb-3">
+                  <div class="code-box-header">
+                    <span class="font-monospace text-muted small">Command</span>
+                    <div class="d-flex gap-1">
+                      <button class="btn-copy" @click="copyToClipboard(cmd.command)">
+                        <i class="fa-regular fa-copy me-1"></i> Copy
+                      </button>
+                      <button class="btn-copy text-info" @click="runSampleInTerminal(cmd.command)">
+                        <i class="fa-solid fa-play me-1"></i> Test
+                      </button>
+                    </div>
+                  </div>
+                  <div class="code-box-content">
+                    <code class="language-bash text-cyan" x-text="cmd.command"></code>
+                  </div>
+                </div>
+
+                <!-- Why CLI over GUI Box -->
+                <div class="p-2 px-3 rounded-3 bg-dark bg-opacity-75 border border-secondary border-opacity-25 mb-3">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fa-solid fa-bolt text-warning small"></i>
+                    <strong class="text-light small bn-text" x-text="lang === 'bn' ? 'কেন এটি CLI-তে করবেন?' : 'Why use CLI for this?'"></strong>
+                  </div>
+                  <p class="text-muted small bn-text m-0" style="font-size: 0.8rem;" x-text="lang === 'bn' ? cmd.whyCliOverGui.bn : cmd.whyCliOverGui.en"></p>
+                </div>
+
+                <!-- Pro Tips Accordion / Collapsible -->
+                <div class="mb-3">
+                  <div class="small fw-semibold text-emerald mb-1 d-flex align-items-center gap-1">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span class="bn-text" x-text="lang === 'bn' ? 'প্রো টিপস ও সতর্কতা:' : 'Pro Tips:'"></span>
+                  </div>
+                  <ul class="text-muted small bn-text ps-3 m-0" style="font-size: 0.8rem;">
+                    <template x-for="tip in cmd.proTips" :key="tip">
+                      <li class="mb-1" x-text="tip"></li>
+                    </template>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Card Footer / Tags -->
+              <div class="pt-2 border-top border-secondary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex flex-wrap gap-1">
+                  <template x-for="tag in cmd.tags" :key="tag">
+                    <span class="badge bg-secondary bg-opacity-25 text-muted small" style="font-size: 0.7rem;" x-text="'#' + tag"></span>
+                  </template>
+                </div>
+                <span class="small font-monospace text-muted" style="font-size: 0.75rem;" x-text="cmd.syntax"></span>
+              </div>
+
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Empty Search State -->
+      <div x-show="filteredCommands.length === 0" class="text-center py-5">
+        <i class="fa-solid fa-magnifying-glass fs-1 text-muted mb-3"></i>
+        <h5 class="text-light bn-text" x-text="lang === 'bn' ? 'কোনো কমান্ড পাওয়া যায়নি' : 'No commands matched your query'"></h5>
+        <p class="text-muted small bn-text" x-text="lang === 'bn' ? 'অনুগ্রহ করে অন্য কোনো কি-ওয়ার্ড দিয়ে খুঁজুন বা ফিল্টার ক্লিয়ার করুন।' : 'Try searching with different keywords or reset filters.'"></p>
+        <button class="btn btn-sm btn-outline-cyan rounded-pill" @click="searchQuery = ''; selectedCategory = 'all'; selectedTag = ''">Reset Filters</button>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: INTERACTIVE COMMAND BUILDER / GENERATOR -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'builder'" x-transition.opacity.duration.300ms style="display: none;">
+      
+      <div class="row g-4">
+        <!-- Builder Input Controls -->
+        <div class="col-lg-6">
+          <div class="card feature-card p-4">
+            <h4 class="fw-bold mb-2 text-light d-flex align-items-center gap-2">
+              <i class="fa-solid fa-sliders text-cyan"></i>
+              <span class="bn-text" x-show="lang === 'bn'">কমান্ড কনফিগারেশন বিল্ডার</span>
+              <span x-show="lang === 'en'">Interactive Command Builder</span>
+            </h4>
+            <p class="text-muted small bn-text mb-4">
+              <span x-show="lang === 'bn'">আপনার প্রয়োজন অনুযায়ী অপশন সিলেক্ট করুন, সিস্টেম স্বয়ংক্রিয়ভাবে পারফেক্ট কমান্ড জেনারেট করে দেবে।</span>
+              <span x-show="lang === 'en'">Choose options to generate ready-to-run copyable MySQL & bash commands.</span>
+            </p>
+
+            <!-- Action Selector -->
+            <div class="mb-3">
+              <label class="form-label text-light small fw-bold bn-text" x-text="lang === 'bn' ? 'অ্যাকশন সিলেক্ট করুন:' : 'Select Action:'"></label>
+              <select class="form-select bg-dark border-secondary text-light" x-model="builder.action">
+                <option value="import">⚡ Import Database (বড় ফাইল ইমপোর্ট)</option>
+                <option value="export">📦 Export / Backup (mysqldump ব্যাকআপ)</option>
+                <option value="connect">🔑 Connect / Login (MySQL সার্ভারে লগইন)</option>
+                <option value="create_user">👤 Create User & Grant (নতুন ইউজার ও প্রিভিলেজ)</option>
+                <option value="reset_password">🔒 Reset User Password (পাসওয়ার্ড পরিবর্তন)</option>
+                <option value="optimize">🧹 Optimize & Repair Tables (টেবিল অপ্টিমাইজ)</option>
+              </select>
+            </div>
+
+            <!-- Dynamic Fields -->
+            <div class="row g-3">
+              <!-- Username -->
+              <div class="col-sm-6">
+                <label class="form-label text-muted small">MySQL User (-u)</label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.user" placeholder="lighttecha1">
+              </div>
+
+              <!-- Database Name -->
+              <div class="col-sm-6">
+                <label class="form-label text-muted small">Target Database</label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.database" placeholder="erp_publication_adhunik_v2_beta">
+              </div>
+
+              <!-- Host -->
+              <div class="col-sm-6">
+                <label class="form-label text-muted small">Host (Optional)</label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.host" placeholder="localhost or IP">
+              </div>
+
+              <!-- Port -->
+              <div class="col-sm-6">
+                <label class="form-label text-muted small">Port</label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.port" placeholder="3306">
+              </div>
+
+              <!-- File Path (For Import / Export) -->
+              <div class="col-12" x-show="builder.action === 'import' || builder.action === 'export'">
+                <label class="form-label text-muted small" x-text="builder.action === 'import' ? 'SQL File Path to Import' : 'Destination Backup File'"></label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.filePath" placeholder="adhunikp_beta_db.sql">
+              </div>
+
+              <!-- Password / User fields for Admin -->
+              <div class="col-sm-6" x-show="builder.action === 'create_user'">
+                <label class="form-label text-muted small">New Username</label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.newUser" placeholder="new_erp_user">
+              </div>
+              <div class="col-sm-6" x-show="builder.action === 'create_user' || builder.action === 'reset_password'">
+                <label class="form-label text-muted small">New Password</label>
+                <input type="text" class="form-control bg-dark border-secondary text-light form-control-sm" x-model="builder.newPassword" placeholder="StrongPassword123!">
+              </div>
+            </div>
+
+            <!-- Toggles / Flags -->
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+              <label class="form-label text-light small fw-bold bn-text" x-text="lang === 'bn' ? 'অতিরিক্ত অপশন ও পারফরম্যান্স ফ্ল্যাগ:' : 'Performance Flags:'"></label>
+              
+              <!-- For Import -->
+              <div x-show="builder.action === 'import'" class="d-flex flex-column gap-2">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="usePvCheck" x-model="builder.usePv">
+                  <label class="form-check-label text-light small bn-text" for="usePvCheck">
+                    <strong>Pipe Viewer (`pv`)</strong> দিয়ে লাইভ স্পিড ও প্রগ্রেস বার দেখাও (Recommended for &gt;100MB)
+                  </label>
+                </div>
+
+                <div class="form-check form-switch" x-show="!builder.usePv">
+                  <input class="form-check-input" type="checkbox" id="disableChecksCheck" x-model="builder.disableChecks">
+                  <label class="form-check-label text-light small bn-text" for="disableChecksCheck">
+                    <strong>Disable Foreign Key & Autocommit Checks</strong> (5x–10x Speedup)
+                  </label>
+                </div>
+              </div>
+
+              <!-- For Export -->
+              <div x-show="builder.action === 'export'" class="d-flex flex-column gap-2">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="singleTransCheck" x-model="builder.singleTransaction">
+                  <label class="form-check-label text-light small bn-text" for="singleTransCheck">
+                    <code>--single-transaction</code> (InnoDB টেবিল লক না করে লাইভ ব্যাকআপ)
+                  </label>
+                </div>
+
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="quickCheck" x-model="builder.quick">
+                  <label class="form-check-label text-light small bn-text" for="quickCheck">
+                    <code>--quick</code> (রো বাই রো স্ট্রিম - মেমোরি ক্র্যাশ প্রোটেকশন)
+                  </label>
+                </div>
+
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="noDataCheck" x-model="builder.noData">
+                  <label class="form-check-label text-light small bn-text" for="noDataCheck">
+                    <code>--no-data</code> (শুধুমাত্র স্কিমা/স্ট্রাকচার এক্সপোর্ট)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Generated Command Result Card -->
+        <div class="col-lg-6">
+          <div class="card feature-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-light m-0 d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-terminal text-emerald"></i>
+                  <span class="bn-text" x-show="lang === 'bn'">জেনারেট হওয়া প্রস্তুত কমান্ড</span>
+                  <span x-show="lang === 'en'">Generated Ready-to-Run Command</span>
+                </h5>
+                <span class="badge-custom badge-emerald">Ready</span>
+              </div>
+
+              <!-- The Generated Box -->
+              <div class="code-box mb-4">
+                <div class="code-box-header">
+                  <span class="font-monospace text-muted small">Bash / Terminal Command</span>
+                  <button class="btn-copy" @click="copyToClipboard(generatedCommand)">
+                    <i class="fa-regular fa-copy me-1"></i> Copy Command
+                  </button>
+                </div>
+                <div class="code-box-content p-3">
+                  <code class="language-bash text-cyan fs-6 fw-bold" x-text="generatedCommand"></code>
+                </div>
+              </div>
+
+              <!-- Explanation of the Generated Flags -->
+              <div class="p-3 rounded-3 bg-dark bg-opacity-75 border border-secondary border-opacity-25">
+                <h6 class="fw-bold text-light small mb-2 bn-text" x-show="lang === 'bn'">এই কমান্ডের সুবিধা ও ব্যাখ্যা:</h6>
+                <h6 class="fw-bold text-light small mb-2" x-show="lang === 'en'">Command Breakdown:</h6>
+                
+                <div class="text-muted small bn-text" x-show="builder.action === 'import'">
+                  <span x-show="lang === 'bn'">
+                    এই কমান্ডটি টার্মিনালের সরাসরি সকেট ব্যবহার করবে। যদি <code>pv</code> টুল ইনস্টল থাকে (<code>sudo apt install pv</code>), তবে এটি স্ক্রিনে লাইভ মেগাবাইট/সেকেন্ড ট্রান্সফার ও পার্সেন্টেজ প্রগ্রেস দেখাবে। phpMyAdmin-এর মতো ব্রাউজার কখনই হ্যাং হবে না।
+                  </span>
+                  <span x-show="lang === 'en'">
+                    Streams the file directly into MySQL socket. With `pv` installed, you get real-time byte progression and zero memory limits.
+                  </span>
+                </div>
+
+                <div class="text-muted small bn-text" x-show="builder.action === 'export'">
+                  <span x-show="lang === 'bn'">
+                    <code>mysqldump</code> এর সাথে <code>--single-transaction</code> ও <code>--quick</code> ব্যবহার করায় প্রোডাকশন সাইটে ইউজাররা কাজ করার সময়ও কোনো টেবিল রিড/রাইট লক ছাড়াই নির্বিঘ্নে ব্যাকআপ তৈরি হবে।
+                  </span>
+                  <span x-show="lang === 'en'">
+                    Using `--single-transaction` and `--quick` allows live non-locking backups for InnoDB tables without app downtime.
+                  </span>
+                </div>
+
+                <div class="text-muted small bn-text" x-show="builder.action === 'create_user'">
+                  <span x-show="lang === 'bn'">
+                    নিরাপদ ইউজার তৈরি করে সাথে সাথে <code>FLUSH PRIVILEGES;</code> রান করে যাতে মেমোরিতে পারমিশন টেবিল সাথে সাথে অ্যাক্টিভ হয়ে যায়।
+                  </span>
+                  <span x-show="lang === 'en'">
+                    Creates dedicated user and immediately reloads grant tables in memory.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mt-4 pt-3 border-top border-secondary border-opacity-25">
+              <button class="btn btn-info text-dark fw-bold px-4 py-2 rounded-pill flex-grow-1" @click="copyToClipboard(generatedCommand)">
+                <i class="fa-regular fa-copy me-2"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'কমান্ড কপি করুন' : 'Copy Generated Command'"></span>
+              </button>
+              
+              <button class="btn btn-outline-light px-3 py-2 rounded-pill" @click="runSampleInTerminal(generatedCommand)">
+                <i class="fa-solid fa-play text-cyan me-1"></i>
+                <span class="bn-text" x-text="lang === 'bn' ? 'সিমুলেটরে চালান' : 'Run in Simulator'"></span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: INTERACTIVE TERMINAL SIMULATOR (PLAYGROUND) -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'terminal'" x-transition.opacity.duration.300ms style="display: none;">
+      
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <!-- Terminal Window -->
+          <div class="terminal-window">
+            <div class="terminal-header">
+              <span class="terminal-btn red"></span>
+              <span class="terminal-btn yellow"></span>
+              <span class="terminal-btn green"></span>
+              <span class="text-muted small font-monospace ms-2">lighttecha1@ubuntu: ~ / MySQL 8.0 Monitor</span>
+            </div>
+
+            <div class="terminal-body" id="terminalContainer">
+              <div id="terminalOutput"></div>
+            </div>
+
+            <div class="terminal-input-row">
+              <span class="prompt-text">mysql&gt;</span>
+              <input type="text" id="terminalInput" class="terminal-input" placeholder="Type SQL or CLI command here and press Enter (e.g. show databases;)" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Command Chips & Interactive Controls -->
+        <div class="col-lg-4">
+          <div class="card feature-card p-4 h-100">
+            <h5 class="fw-bold text-light mb-2 d-flex align-items-center gap-2">
+              <i class="fa-solid fa-laptop-code text-cyan"></i>
+              <span class="bn-text" x-show="lang === 'bn'">কুইক টেস্ট কমান্ডসমূহ</span>
+              <span x-show="lang === 'en'">Quick Test Commands</span>
+            </h5>
+            <p class="small text-muted bn-text mb-3">
+              <span x-show="lang === 'bn'">নিচের যেকোনো কমান্ডে ক্লিক করে সরাসরি টার্মিনালে রান করে রিয়েল আউটপুট টেস্ট করুন:</span>
+              <span x-show="lang === 'en'">Click any preset below to execute instantly inside the simulator:</span>
+            </p>
+
+            <div class="d-flex flex-column gap-2">
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('show databases;')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> show databases;
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('use erp_publication_adhunik_v2_beta;')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> use erp_publication_adhunik_v2_beta;
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('select database();')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> select database();
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('status;')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> status;
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('show tables;')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> show tables;
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('describe users;')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> describe users;
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-cyan" @click="runSampleInTerminal('source adhunikp_beta_db.sql')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> source adhunikp_beta_db.sql
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-warning" @click="runSampleInTerminal('pv adhunikp_beta_db.sql | mysql')">
+                <i class="fa-solid fa-play me-2 text-muted"></i> pv adhunikp_beta_db.sql | mysql
+              </button>
+
+              <button class="btn btn-sm btn-dark border-secondary text-start font-monospace text-muted" @click="runSampleInTerminal('clear')">
+                <i class="fa-solid fa-eraser me-2"></i> clear console
+              </button>
+            </div>
+
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+              <span class="badge bg-info text-dark mb-1">Keyboard Shortcuts</span>
+              <p class="small text-muted font-monospace m-0" style="font-size: 0.75rem;">
+                • <kbd>Up/Down</kbd> : Command History<br>
+                • <kbd>Enter</kbd> : Execute Command<br>
+                • <kbd>\c</kbd> or <kbd>clear</kbd> : Clear screen
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: ERROR DOCTOR & LOG TROUBLESHOOTING -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'troubleshoot'" x-transition.opacity.duration.300ms style="display: none;">
+      
+      <!-- Doctor Header Banner -->
+      <div class="card feature-card p-4 mb-4 border-rose border-opacity-25">
+        <div class="d-flex align-items-center gap-3">
+          <div class="p-3 rounded-circle bg-danger bg-opacity-25 text-danger fs-3">
+            <i class="fa-solid fa-stethoscope"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h4 class="fw-bold text-light mb-1">
+                <span class="bn-text" x-show="lang === 'bn'">MySQL এরর ডক্টর ও আপনার টার্মিনাল লগ সমাধান</span>
+                <span x-show="lang === 'en'">MySQL Error Doctor & Log Diagnosis</span>
+              </h4>
+              <span class="badge bg-danger">Log Diagnostics</span>
+            </div>
+            <p class="text-muted small bn-text m-0">
+              <span x-show="lang === 'bn'">
+                আপনার দেওয়া টার্মিনাল লগে <strong>Error 1050 (Table exists)</strong>, <strong>Error 1062 (Duplicate entry PRIMARY)</strong>, এবং <strong>Error 1826 (Duplicate foreign key constraint)</strong> এররগুলো এসেছে। নিচে এর সঠিক কারণ ও ৩টি স্থায়ী সমাধান তুলে ধরা হলো:
+              </span>
+              <span x-show="lang === 'en'">
+                Direct diagnosis and solutions for the exact errors found in your session log (Error 1050, 1062, 1826, 1068, 1064).
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Cards List -->
+      <div class="row g-4">
+        <template x-for="err in errors" :key="err.code">
+          <div class="col-lg-6">
+            <div class="card feature-card p-4 h-100 d-flex flex-column justify-content-between border-secondary border-opacity-25">
+              
+              <div>
+                <!-- Error Title & Sample -->
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <div>
+                    <span class="badge-custom badge-rose mb-1" x-text="err.code"></span>
+                    <h5 class="fw-bold text-light mb-1" x-text="err.name"></h5>
+                  </div>
+                  <span class="badge bg-secondary small" x-text="err.badge"></span>
+                </div>
+
+                <!-- Sample Log Snippet -->
+                <div class="p-2 rounded-2 bg-black border border-danger border-opacity-25 mb-3 font-monospace small text-danger">
+                  <i class="fa-solid fa-triangle-exclamation me-1"></i> <span x-text="err.sampleFromLog"></span>
+                </div>
+
+                <!-- Root Cause -->
+                <div class="mb-3">
+                  <h6 class="fw-bold text-warning small mb-1 bn-text" x-text="lang === 'bn' ? 'কেন এই এররটি হয়েছে? (Root Cause):' : 'Root Cause:'"></h6>
+                  <p class="text-muted small bn-text m-0" x-text="lang === 'bn' ? err.rootCause.bn : err.rootCause.en"></p>
+                </div>
+
+                <!-- Solutions -->
+                <div class="mb-3">
+                  <h6 class="fw-bold text-emerald small mb-2 bn-text" x-text="lang === 'bn' ? 'স্থায়ী সমাধানসমূহ:' : 'Recommended Fixes:'"></h6>
+                  <template x-for="sol in err.solutions" :key="sol.method">
+                    <div class="mb-3 p-2 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-light small" x-text="sol.method"></strong>
+                        <button class="btn-copy" @click="copyToClipboard(sol.code)"><i class="fa-regular fa-copy"></i> Copy</button>
+                      </div>
+                      <p class="text-muted small bn-text mb-2" style="font-size: 0.75rem;" x-text="lang === 'bn' ? sol.description.bn : sol.description.en"></p>
+                      <div class="code-box">
+                        <div class="code-box-content p-2 small font-monospace text-cyan" x-text="sol.code"></div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Prevention Tip -->
+              <div class="pt-2 border-top border-secondary border-opacity-25">
+                <span class="text-info small fw-bold bn-text"><i class="fa-solid fa-shield-check me-1"></i> Prevention Tip:</span>
+                <span class="text-muted small bn-text ms-1" x-text="lang === 'bn' ? err.preventionTip.bn : err.preventionTip.en"></span>
+              </div>
+
+            </div>
+          </div>
+        </template>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 7: QUICK CHEATSHEET -->
+    <!-- ========================================================================= -->
+    <div x-show="currentTab === 'cheatsheet'" x-transition.opacity.duration.300ms style="display: none;">
+      
+      <div class="card feature-card p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+          <div>
+            <h4 class="fw-bold text-light mb-1 d-flex align-items-center gap-2">
+              <i class="fa-solid fa-bookmark text-cyan"></i>
+              <span class="bn-text" x-show="lang === 'bn'">MySQL CLI সম্পূর্ণ কুইক রেফারেন্স চিটশিট</span>
+              <span x-show="lang === 'en'">MySQL CLI Quick Reference Cheat Sheet</span>
+            </h4>
+            <p class="text-muted small bn-text m-0">প্রয়োজনীয় সব এক-লাইনার কমান্ড এক জায়গায় প্রিন্ট বা সেভ করে রাখার মতো ফর্মেটে।</p>
+          </div>
+          <button class="btn btn-sm btn-outline-cyan rounded-pill" onclick="window.print()">
+            <i class="fa-solid fa-print me-1"></i> Print / Save PDF
+          </button>
+        </div>
+
+        <div class="row g-4">
+          <!-- Column 1: Import & Export -->
+          <div class="col-lg-6">
+            <h6 class="fw-bold text-cyan border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+              <i class="fa-solid fa-right-left me-2"></i> 1. Import & Export One-Liners
+            </h6>
+            
+            <div class="d-flex flex-column gap-3">
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Import via Linux Shell</span>
+                  <button class="btn-copy" @click="copyToClipboard('mysql -u root -p database_name < backup.sql')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">mysql -u root -p database_name &lt; backup.sql</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Import with Progress Bar (`pv`)</span>
+                  <button class="btn-copy" @click="copyToClipboard('pv backup.sql | mysql -u root -p database_name')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">pv backup.sql | mysql -u root -p database_name</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Export Full DB (Production Safe)</span>
+                  <button class="btn-copy" @click="copyToClipboard('mysqldump -u root -p --single-transaction --quick database_name > backup.sql')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">mysqldump -u root -p --single-transaction --quick database_name &gt; backup.sql</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Export and Gzip in One Go</span>
+                  <button class="btn-copy" @click="copyToClipboard('mysqldump -u root -p --single-transaction database_name | gzip -9 > backup.sql.gz')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">mysqldump -u root -p --single-transaction database_name | gzip -9 &gt; backup.sql.gz</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Navigation & Inspection -->
+          <div class="col-lg-6">
+            <h6 class="fw-bold text-warning border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+              <i class="fa-solid fa-compass me-2"></i> 2. Navigation & Inspection
+            </h6>
+            
+            <div class="d-flex flex-column gap-3">
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>List All Databases</span>
+                  <button class="btn-copy" @click="copyToClipboard('SHOW DATABASES;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">SHOW DATABASES;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Switch Active Database</span>
+                  <button class="btn-copy" @click="copyToClipboard('USE database_name;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">USE database_name;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>List All Tables in Active Database</span>
+                  <button class="btn-copy" @click="copyToClipboard('SHOW TABLES;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">SHOW TABLES;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Inspect Server Status & Charset</span>
+                  <button class="btn-copy" @click="copyToClipboard('STATUS;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">STATUS;</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Administration & Query Management -->
+          <div class="col-lg-6">
+            <h6 class="fw-bold text-emerald border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+              <i class="fa-solid fa-user-gear me-2"></i> 3. Admin & Process Control
+            </h6>
+            
+            <div class="d-flex flex-column gap-3">
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Create User & Grant All Permissions</span>
+                  <button class="btn-copy" @click="copyToClipboard('CREATE USER \'app\'@\'localhost\' IDENTIFIED BY \'pass\'; GRANT ALL PRIVILEGES ON db.* TO \'app\'@\'localhost\'; FLUSH PRIVILEGES;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">CREATE USER 'app'@'localhost' IDENTIFIED BY 'pass'; GRANT ALL ON db.* TO 'app'@'localhost'; FLUSH PRIVILEGES;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Show Active Running Queries</span>
+                  <button class="btn-copy" @click="copyToClipboard('SHOW FULL PROCESSLIST;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">SHOW FULL PROCESSLIST;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Kill Hanging Query Thread</span>
+                  <button class="btn-copy" @click="copyToClipboard('KILL 52;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">KILL &lt;PROCESS_ID&gt;;</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 4: High Speed Import Commands -->
+          <div class="col-lg-6">
+            <h6 class="fw-bold text-info border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+              <i class="fa-solid fa-bolt me-2"></i> 4. Turbo Import Speedup Commands
+            </h6>
+            
+            <div class="d-flex flex-column gap-3">
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Disable FK Checks Before Source</span>
+                  <button class="btn-copy" @click="copyToClipboard('SET foreign_key_checks = 0;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">SET foreign_key_checks = 0;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Re-enable FK Checks After Source</span>
+                  <button class="btn-copy" @click="copyToClipboard('SET foreign_key_checks = 1;')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">SET foreign_key_checks = 1;</code>
+              </div>
+
+              <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Cancel Current Multiline Prompt</span>
+                  <button class="btn-copy" @click="copyToClipboard('\\c')">Copy</button>
+                </div>
+                <code class="text-light small font-monospace">\c</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-top border-secondary border-opacity-25 py-3 mt-5 text-center text-muted small font-monospace">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span>MySQL CLI Mastery Hub • Built with HTML5, Bootstrap 5, Alpine.js & Prism.js</span>
+        <span>Environment: Ubuntu Linux / MySQL 8.0+</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5.3.3 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

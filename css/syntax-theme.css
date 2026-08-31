@@ -1,0 +1,72 @@
+/* Custom syntax highlighting theme for SQL & Bash */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #e2e8f0;
+  text-shadow: none;
+  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+  text-align: left;
+  white-space: pre-wrap;
+  word-spacing: normal;
+  word-break: break-all;
+  line-height: 1.5;
+  tab-size: 4;
+  hyphens: none;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #64748b;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #94a3b8;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol {
+  color: #f59e0b;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin {
+  color: #34d399;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #38bdf8;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.token.function,
+.token.class-name {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #fb7185;
+}
+

@@ -1,0 +1,352 @@
+/* Modern Custom CSS for MySQL CLI Mastery SPA */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-bn: 'Hind Siliguri', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Theme Colors */
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17, 24, 39, 0.85);
+  --bg-card-hover: rgba(30, 41, 59, 0.9);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(6, 182, 212, 0.3);
+
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-blue: #3b82f6;
+  --accent-rose: #f43f5e;
+}
+
+[data-bs-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-glow: rgba(6, 182, 212, 0.4);
+
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+/* Bengali Font Rendering */
+.bn-text {
+  font-family: var(--font-bn);
+  line-height: 1.6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Header & Glassmorphism */
+.glass-header {
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+[data-bs-theme="light"] .glass-header {
+  background: rgba(248, 250, 252, 0.88);
+}
+
+/* Interactive Nav Tabs */
+.nav-pill-custom {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.nav-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.nav-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.nav-pill-btn.active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2));
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+/* Modern Cards */
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.feature-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(6, 182, 212, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Command Block Styling */
+.code-box {
+  background: #080c14;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  position: relative;
+  overflow: hidden;
+}
+[data-bs-theme="light"] .code-box {
+  background: #1e293b;
+  color: #f8fafc;
+}
+.code-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.code-box-content {
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+/* Terminal Playground Simulator */
+.terminal-window {
+  background: #090d16;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+}
+.terminal-header {
+  background: #111827;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.terminal-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.terminal-btn.red { background: #ef4444; }
+.terminal-btn.yellow { background: #f59e0b; }
+.terminal-btn.green { background: #10b981; }
+
+.terminal-body {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+.terminal-table {
+  color: #38bdf8;
+  margin: 0;
+  font-size: 0.8rem;
+}
+.terminal-input-row {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  background: #0e1422;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  outline: none;
+}
+.prompt-text {
+  color: #10b981;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+/* Badges & Glowing Accents */
+.badge-custom {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.badge-cyan {
+  background: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+.badge-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.badge-amber {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.badge-rose {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+/* Toast Notifications */
+.custom-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1090;
+  min-width: 280px;
+  background: #0f172a;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border-radius: 0.75rem;
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Hero Gradient & Accent Glows */
+.hero-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.15) 0%, rgba(11, 15, 25, 0) 70%);
+}
+.stat-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 0.85rem;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+/* Copy Button Styling */
+.btn-copy {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-copy:hover {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+}
+
+/* Quick Filter Pills */
+.filter-tag-pill {
+  cursor: pointer;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+.filter-tag-pill:hover,
+.filter-tag-pill.active {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .terminal-window {
+    height: 400px;
+  }
+  .custom-toast {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+}
+
