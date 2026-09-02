@@ -1,13 +1,15 @@
 // MySQL CLI Complete A-to-Z Command Reference Dataset
-// Covers: Server Connect, DDL (Databases/Tables), DML (Queries/CRUD), Heavy Imports/Exports, Security & Optimization
+// Covers: Server Connect, Direct One-Liners, DDL (Databases/Tables), DML (Queries/CRUD), Heavy Imports/Exports, Security, System Variables & Diagnostics
 // Retains real-world ERP case study (`erp_publication_adhunik_v2_beta` & `adhunikp_beta_db.sql`)
 
 const COMMANDS_DATA = [
-  // STAGE 1: GETTING STARTED & SERVER CONNECT
+  // =========================================================================
+  // STAGE 1: SERVER CONNECT, LOGIN & SHELL EXIT
+  // =========================================================================
   {
     id: "cmd-start-1",
     category: "getting-started",
-    badge: "Stage 1: Connection",
+    badge: "Stage 1: Service",
     title: {
       bn: "MySQL সার্ভিস স্ট্যাটাস ও স্টার্ট করা (Linux Service)",
       en: "Check & Start MySQL Server Service in Linux"
@@ -38,18 +40,19 @@ const COMMANDS_DATA = [
       en: "Log in to Local MySQL Server via CLI"
     },
     description: {
-      bn: "টার্মিনাল থেকে পাসওয়ার্ড প্রম্পট সহ রুট বা নির্দিষ্ট ইউজার হিসেবে লগইন করা।",
+      bn: "টার্মিনাল থেকে পাসওয়ার্ড প্রম্পট সহ রুট বা নির্দিষ্ট ইউজার হিসেবে ইন্টারঅ্যাক্টিভ কনসোলে প্রবেশ করা।",
       en: "Securely enter MySQL interactive prompt with hidden password prompt."
     },
     command: "mysql -u lighttecha1 -p",
     difficulty: "Beginner",
     whyCliOverGui: {
-      bn: "পাসওয়ার্ড কীবোর্ডে অদৃশ্য থাকে, যা কোনো ব্রাউজার পেজে সেভ হওয়ার ঝুঁকি থাকে না।",
+      bn: "পাসওয়ার্ড কীবোর্ডে টাইপ করার সময় অদৃশ্য থাকে, যা কোনো ব্রাউজারে সেভ হওয়ার ঝুঁকি থাকে না।",
       en: "Keeps connection credentials out of browser local storage and plaintext logs."
     },
     proTips: [
       "রুট ইউজার হিসেবে লগইন করতে: `mysql -u root -p`",
-      "বের হতে লিখুন: `exit` অথবা `quit` বা `Ctrl+D`"
+      "ক্যাপাসিটি চারসেট সহ ঢুকতে: `mysql -u root -p --default-character-set=utf8mb4`",
+      "কনসোল থেকে বের হতে লিখুন: `exit` অথবা `quit` বা `Ctrl+D`"
     ],
     tags: ["getting-started", "login", "connect", "root"],
     syntax: "mysql -u [username] -p"
@@ -57,10 +60,35 @@ const COMMANDS_DATA = [
   {
     id: "cmd-start-3",
     category: "getting-started",
+    badge: "Stage 1: Non-Interactive",
+    title: {
+      bn: "MySQL কনসোলে না ঢুকেই সরাসরি এক লাইনে কুয়েরি চালানো",
+      en: "Execute One-Liner SQL Query directly from Bash without entering CLI"
+    },
+    description: {
+      bn: "টার্মিনালে রিডাইরেক্ট না হয়েই সরাসরি শেল থেকে ডাটাবেজ লিস্ট বা টেস্ট কুয়েরি রান করা।",
+      en: "Run quick inline queries via `-e` flag from shell without keeping open connection."
+    },
+    command: "mysql -u lighttecha1 -p -e \"SHOW DATABASES;\"",
+    difficulty: "Beginner",
+    whyCliOverGui: {
+      bn: "শেল স্ক্রিপ্টিং বা অটোমেশনে কোনো মেনু না খুলে ব্যাকগ্রাউন্ডে ফলাফল আনা যায়।",
+      en: "Ideal for shell scripts and automated cron jobs needing database query outputs."
+    },
+    proTips: [
+      "নির্দিষ্ট ডাটাবেজে কুয়েরি করতে: `mysql -u user -p -e \"SELECT COUNT(*) FROM users;\" db_name`",
+      "ভার্টিক্যাল রেজাল্ট দেখতে: `mysql -u user -p -e \"SELECT * FROM users LIMIT 1\\G\" db_name`"
+    ],
+    tags: ["getting-started", "one-liner", "inline", "execute"],
+    syntax: "mysql -u [user] -p -e \"[SQL_QUERY]\" [db_name]"
+  },
+  {
+    id: "cmd-start-4",
+    category: "getting-started",
     badge: "Stage 1: Remote Host",
     title: {
-      bn: "রিমোট কাস্টম হোস্ট ও পোর্টে কানেক্ট হওয়া (Remote Database)",
-      en: "Connect to Remote MySQL Server specifying Host & Port"
+      bn: "রিমোট কাস্টম হোস্ট ও পোর্টে কানেক্ট হওয়া (Remote VPS/Cloud)",
+      en: "Connect to Remote MySQL Server specifying Host IP & Port"
     },
     description: {
       bn: "দূরবর্তী কোনো ক্লাউড বা ভিপিএস (VPS) সার্ভারে পোর্টের মাধ্যমে রিডাইরেক্ট হয়ে কানেক্ট করা।",
@@ -80,14 +108,16 @@ const COMMANDS_DATA = [
     syntax: "mysql -h [host_ip] -P [port] -u [user] -p"
   },
 
+  // =========================================================================
   // STAGE 2: DATABASE CREATION & MANAGEMENT (DDL)
+  // =========================================================================
   {
     id: "cmd-db-1",
     category: "db-table-crud",
-    badge: "Stage 2: Database",
+    badge: "Stage 2: Create DB",
     title: {
       bn: "ইউনিকোড ও বাংলা সাপোর্টসহ নতুন ডাটাবেজ তৈরি",
-      en: "Create Database with UTF8MB4 Collation (Bengali Ready)"
+      en: "Create Database with UTF8MB4 Collation (Bengali & Emoji Ready)"
     },
     description: {
       bn: "বাংলা ও ইমোজি সাপোর্ট নিশ্চিত করতে `utf8mb4_unicode_ci` ক্যারেক্টারসেটে ডাটাবেজ গঠন করা।",
@@ -125,18 +155,69 @@ const COMMANDS_DATA = [
       en: "Instant confirmation of active schema target before running destructive queries."
     },
     proTips: [
-      "কমান্ডের শেষে সেমিকোলন (`;`) দেওয়া বাধ্যতামূলক।",
-      "কোনো ডাটাবেজ ড্রপ/মুছে ফেলতে (সাবধান!): `DROP DATABASE test_db;`"
+      "কমান্ডের শেষে সেমিকোলনের (`;`) ব্যবহার বাধ্যতামূলক।",
+      "বর্তমানে সক্রিয় ডাটাবেজের নাম পেতে: `SELECT DATABASE();`"
     ],
     tags: ["db-table-crud", "show-databases", "use", "select-database"],
     syntax: "SHOW DATABASES; USE [db_name];"
   },
+  {
+    id: "cmd-db-3",
+    category: "db-table-crud",
+    badge: "Stage 2: Drop DB",
+    title: {
+      bn: "অপ্রয়োজনীয় ডাটাবেজ নিরাপদভাবে ডিলিট করা (`DROP DATABASE`)",
+      en: "Drop / Delete Database safely with IF EXISTS"
+    },
+    description: {
+      bn: "টেস্ট বা পুরাতন ডাটাবেজ মুছে ফেলা (সাবধানতা আবশ্যক!)।",
+      en: "Permanently removes database schema and all underlying table contents."
+    },
+    command: "DROP DATABASE IF EXISTS test_dummy_db;",
+    difficulty: "Intermediate",
+    whyCliOverGui: {
+      bn: "GUI তে ঝুলন্ত লোডিং ছাড়াই ব্যাকগ্রাউন্ডে ইনস্ট্যান্ট ফাইল আনলিংক সম্পন্ন হয়।",
+      en: "Instantly reclaims storage filesystem pointers directly in the OS kernel."
+    },
+    proTips: [
+      "সাবধান! এটি রিকভার করা সম্ভব নয়। ব্যাকআপ না নিয়ে প্রোডাকশন ডিলিট করবেন না।"
+    ],
+    tags: ["db-table-crud", "drop-database", "delete"],
+    syntax: "DROP DATABASE IF EXISTS [db_name];"
+  },
 
-  // STAGE 3: TABLE SCHEMA DESIGN & STRUCTURE (DDL)
+  // =========================================================================
+  // STAGE 3: TABLE SCHEMA DESIGN & MANAGEMENT (DDL)
+  // =========================================================================
   {
     id: "cmd-table-1",
     category: "db-table-crud",
-    badge: "Stage 3: Table Design",
+    badge: "Stage 3: Table List",
+    title: {
+      bn: "সকল টেবিল তালিকা দেখা ও স্কিমা ডিসক্রাইব করা",
+      en: "Show All Tables & Inspect Column Data Types"
+    },
+    description: {
+      bn: "সক্রিয় ডাটাবেজে কতগুলো টেবিল আছে তা দেখা এবং নির্দিষ্ট টেবিলের কলাম স্ট্রাকচার ইনস্পেক্ট করা।",
+      en: "Displays list of tables and details field names, data types, nullability, and primary keys."
+    },
+    command: "SHOW TABLES;\nDESCRIBE users;",
+    difficulty: "Beginner",
+    whyCliOverGui: {
+      bn: "১২৬টি টেবিল তালিকায় ক্লিক করে লোড দেওয়ার ঝামেলা ছাড়া এক সেকেন্ডে ফিল্ড লিস্ট পাওয়া যায়।",
+      en: "Lightning fast inspection of column definitions without UI lag."
+    },
+    proTips: [
+      "সংক্ষেপে টাইপ করতে: `DESC users;`",
+      "টেবিলের সঠিক `CREATE TABLE` কোড দেখতে: `SHOW CREATE TABLE users\\G`"
+    ],
+    tags: ["db-table-crud", "show-tables", "describe", "schema"],
+    syntax: "SHOW TABLES; DESCRIBE [table_name];"
+  },
+  {
+    id: "cmd-table-2",
+    category: "db-table-crud",
+    badge: "Stage 3: Create Table",
     title: {
       bn: "প্রাইমারি ও ফরেন কি সহ নতুন টেবিল তৈরি (`CREATE TABLE`)",
       en: "Create Relational InnoDB Table with Primary & Foreign Keys"
@@ -152,14 +233,14 @@ const COMMANDS_DATA = [
       en: "Allows exact DDL script version control for team migrations."
     },
     proTips: [
-      "টেবিলের গঠন বা স্ট্রাকচার দেখতে: `DESCRIBE users;` অথবা `DESC users;`",
-      "টেবিলের সম্পূর্ণ CREATE SQL দেখতে: `SHOW CREATE TABLE users\\G`"
+      "সর্বদা `ENGINE=InnoDB` ব্যবহার করুন (ট্রানজেকশন ও ফরেন কি সাপোর্টের জন্য)।",
+      "বাংলা সাজেশনের জন্য `CHARSET=utf8mb4` বেছে নিন।"
     ],
     tags: ["db-table-crud", "create-table", "innodb", "primary-key"],
     syntax: "CREATE TABLE [name] (column_definitions) ENGINE=InnoDB;"
   },
   {
-    id: "cmd-table-2",
+    id: "cmd-table-3",
     category: "db-table-crud",
     badge: "Stage 3: Alter Schema",
     title: {
@@ -183,8 +264,34 @@ const COMMANDS_DATA = [
     tags: ["db-table-crud", "alter-table", "add-column", "index"],
     syntax: "ALTER TABLE [table] ADD COLUMN [col] [type];"
   },
+  {
+    id: "cmd-table-4",
+    category: "db-table-crud",
+    badge: "Stage 3: Truncate Table",
+    title: {
+      bn: "টেবিলের সব ডাটা খালি করা ও আইডি রিসেট (`TRUNCATE TABLE`)",
+      en: "Empty All Rows Fast & Reset Auto Increment ID"
+    },
+    description: {
+      bn: "টেবিলের ডাটা সম্পূর্ণ মুছে কলাম স্ট্রাকচার ঠিক রেখে `AUTO_INCREMENT` আইডি ১-এ রিসেট করা।",
+      en: "Drops and recreates table empty instance reclaimed storage instantly."
+    },
+    command: "TRUNCATE TABLE audit_logs;",
+    difficulty: "Intermediate",
+    whyCliOverGui: {
+      bn: "`DELETE FROM` রো-বাই-রো মোছে যা ধীরগতির; `TRUNCATE` ১ সেকেন্ডে ১০ লাখ ডাটা রিসেট করে।",
+      en: "Bypasses row-level lock tracking, completing instantly regardless of table size."
+    },
+    proTips: [
+      "সতর্কতা: এটি রোলব্যাক করা যায় না।"
+    ],
+    tags: ["db-table-crud", "truncate", "reset-table", "clean"],
+    syntax: "TRUNCATE TABLE [table_name];"
+  },
 
+  // =========================================================================
   // STAGE 4: DATA MANIPULATION & QUERIES (DML / CRUD)
+  // =========================================================================
   {
     id: "cmd-crud-1",
     category: "query-dml",
@@ -213,7 +320,7 @@ const COMMANDS_DATA = [
   {
     id: "cmd-crud-2",
     category: "query-dml",
-    badge: "Stage 4: Advanced Select",
+    badge: "Stage 4: Select Queries",
     title: {
       bn: "ফিল্টারিং, JOIN এবং ফিল্ড সার্চ কুয়েরি (`SELECT` & `JOIN`)",
       en: "Query Data with WHERE, INNER JOIN & Formatting"
@@ -229,7 +336,7 @@ const COMMANDS_DATA = [
       en: "Appending `\\G` formats wide relational table rows into clean key-value vertical blocks."
     },
     proTips: [
-      "ভার্টিক্যাল আউটপুট দেখতে শেষে সেমিকোলনের জায়গায় `\\G` দিন: `SELECT * FROM users WHERE id=1\\G`",
+      "ভার্টিক্যাল প্রীতিময় আউটপুট দেখতে শেষে সেমিকোলনের জায়গায় `\\G` দিন: `SELECT * FROM users WHERE id=1\\G`",
       "মোট কতগুলো রো আছে জানতে: `SELECT COUNT(*) FROM users;`"
     ],
     tags: ["query-dml", "select", "join", "where", "formatting"],
@@ -247,21 +354,23 @@ const COMMANDS_DATA = [
       bn: "শর্তসাপেক্ষে নির্দিষ্ট রো-এর মান আপডেট করা অথবা ভুল রেকর্ড মুছে ফেলা।",
       en: "Modifies or removes filtered database table records safely."
     },
-    command: "-- Update Record\nUPDATE users SET role_id = 2 WHERE email = 'tanvir@example.com';\n\n-- Delete Record\nDELETE FROM users WHERE id = 105;\n\n-- Empty All Table Rows Fast\nTRUNCATE TABLE test_logs;",
+    command: "-- Update Record\nUPDATE users SET role_id = 2 WHERE email = 'tanvir@example.com';\n\n-- Delete Record\nDELETE FROM users WHERE id = 105;",
     difficulty: "Intermediate",
     whyCliOverGui: {
       bn: "`WHERE` ছাড়া ভুল আপডেট/ডিলিট রোধ করতে আগে `SELECT` দিয়ে রো নিশ্চিত হওয়া যায়।",
-      en: "`TRUNCATE TABLE` reclaims disk extents immediately compared to slow row-by-row `DELETE`."
+      en: "Ensures precise targeting before making permanent row state modifications."
     },
     proTips: [
       "সতর্কতা: `WHERE` ক্লজ ছাড়া `UPDATE` বা `DELETE` দিলে টেবিলের সব রেকর্ড মুছে বা বদলে যাবে!",
-      "সম্পূর্ণ টেবিল ডাটা খালি ও ইনডেক্স রিসেট করতে: `TRUNCATE TABLE table_name;`"
+      "আগে `SELECT * FROM table WHERE condition;` দিয়ে মিলিয়ে নিন।"
     ],
-    tags: ["query-dml", "update", "delete", "truncate"],
+    tags: ["query-dml", "update", "delete", "where"],
     syntax: "UPDATE [table] SET [col]=[val] WHERE [cond]; DELETE FROM [table] WHERE [cond];"
   },
 
+  // =========================================================================
   // STAGE 5: HEAVY DATABASE IMPORT, EXPORT & PIPELINES (REAL CASE STUDY)
+  // =========================================================================
   {
     id: "cmd-import-1",
     category: "import-export",
@@ -292,7 +401,7 @@ const COMMANDS_DATA = [
     category: "import-export",
     badge: "Stage 5: Turbo Source",
     title: {
-      bn: "Foreign Key ও Autocommit বন্ধ রেখে `source` দিয়ে দ্রাঘিত ইমপোর্ট",
+      bn: "Foreign Key ও Autocommit বন্ধ রেখে `source` দিয়ে দ্রুত ইমপোর্ট",
       en: "Fast Console Import via `source` with FK Validation Disabled"
     },
     description: {
@@ -337,12 +446,38 @@ const COMMANDS_DATA = [
     tags: ["import-export", "export", "mysqldump", "single-transaction"],
     syntax: "mysqldump -u [user] -p --single-transaction [db] > [output.sql]"
   },
+  {
+    id: "cmd-export-2",
+    category: "import-export",
+    badge: "Stage 5: Schema Only",
+    title: {
+      bn: "শুধুমাত্র স্কিমা/স্ট্রাকচার ব্যাকআপ (ডাটা ছাড়া `--no-data`)",
+      en: "Export Schema / DDL Structure Only without Table Data"
+    },
+    description: {
+      bn: "কোনো ডাটা ছাড়া শুধুমাত্র সকল টেবিলের `CREATE TABLE` স্ট্রাকচার ও ইনডেক্স ব্যাকআপ নেওয়া।",
+      en: "Generates lightweight DDL database structure SQL file excluding row contents."
+    },
+    command: "mysqldump -u lighttecha1 -p --no-data erp_publication_adhunik_v2_beta > schema_only.sql",
+    difficulty: "Intermediate",
+    whyCliOverGui: {
+      bn: "নতুন ডেভেলপমেন্ট এনভায়রনমেন্ট সাজাতে লাইটওয়েট স্কিমা তৈরি করতে সেরা উপায়।",
+      en: "Produces clean lightweight migration files ideal for staging and dev setup."
+    },
+    proTips: [
+      "শুধুমাত্র ডাটা নিতে (স্ট্রাকচার ছাড়া): `mysqldump -u user -p --no-create-info db > data_only.sql`"
+    ],
+    tags: ["import-export", "export", "schema-only", "no-data"],
+    syntax: "mysqldump -u [user] -p --no-data [database] > schema.sql"
+  },
 
+  // =========================================================================
   // STAGE 6: USER MANAGEMENT & SECURITY GRANTS
+  // =========================================================================
   {
     id: "cmd-admin-1",
     category: "administration",
-    badge: "Stage 6: User Security",
+    badge: "Stage 6: Create User",
     title: {
       bn: "নতুন ডাটাবেজ ইউজার তৈরি ও পারমিশন প্রদান (`GRANT ALL`)",
       en: "Create Secure User & Assign Database Privileges"
@@ -367,7 +502,7 @@ const COMMANDS_DATA = [
   {
     id: "cmd-admin-2",
     category: "administration",
-    badge: "Stage 6: Password Reset",
+    badge: "Stage 6: Pass & Grants",
     title: {
       bn: "ইউজারের পাসওয়ার্ড পরিবর্তন ও হোস্ট পারমিশন রিভোকোট",
       en: "Alter User Password & Revoke Specific Grants"
@@ -389,37 +524,88 @@ const COMMANDS_DATA = [
     tags: ["administration", "password-reset", "revoke", "security"],
     syntax: "ALTER USER '[user]'@'[host]' IDENTIFIED BY '[new_pass]';"
   },
+  {
+    id: "cmd-admin-3",
+    category: "administration",
+    badge: "Stage 6: User List",
+    title: {
+      bn: "সার্ভারের সকল ইউজারের তালিকা ও পারমিশন ইনস্পেক্ট করা",
+      en: "List All Database Users & Inspect Active Grants"
+    },
+    description: {
+      bn: "MySQL অভ্যন্তরীণ `mysql.user` টেবিল কুয়েরি করে তৈরি করা সব ইউজার ও তাদের পারমিশন পরীক্ষা।",
+      en: "Queries system catalog user tables for active database accounts."
+    },
+    command: "SELECT User, Host, plugin FROM mysql.user;\nSHOW GRANTS FOR 'erp_admin'@'localhost';",
+    difficulty: "Intermediate",
+    whyCliOverGui: {
+      bn: "কোন ইউজার কোন হোস্ট থেকে বা কোন প্লাগইন (`caching_sha2_password`) দিয়ে যুক্ত তা নিশ্চিত হওয়া।",
+      en: "Displays authentication plugin drivers and exact host masks."
+    },
+    proTips: [
+      "রুট ইউজারের পারমিশন দেখতে: `SHOW GRANTS FOR 'root'@'localhost';`"
+    ],
+    tags: ["administration", "user-list", "show-grants", "security"],
+    syntax: "SELECT User, Host FROM mysql.user; SHOW GRANTS FOR '[user]'@'[host]';"
+  },
 
-  // STAGE 7: DIAGNOSTICS, MONITORING & PERFORMANCE (OPTIMIZATION)
+  // =========================================================================
+  // STAGE 7: CONFIGURATION & SYSTEM VARIABLES TUNING
+  // =========================================================================
   {
     id: "cmd-opt-1",
     category: "optimization",
-    badge: "Stage 7: Monitoring",
+    badge: "Stage 7: Packet Tuning",
+    title: {
+      bn: "Max Packet Limit বর্ধন (1GB Import Limit Fix)",
+      en: "Check & Update `max_allowed_packet` size for heavy imports"
+    },
+    description: {
+      bn: "বড় SQL ডাম্প বা ইমেজ/ইনসার্ট ফাইল ইমপোর্টে 'Packet too large' (Error 1153) সমাধান।",
+      en: "Inspects and resizes active packet buffer to prevent network socket overflow errors."
+    },
+    command: "SHOW VARIABLES LIKE 'max_allowed_packet';\nSET GLOBAL max_allowed_packet = 1073741824;",
+    difficulty: "Advanced",
+    whyCliOverGui: {
+      bn: "রানিং সার্ভারে রিস্টার্ট ছাড়াই ১ জিবির প্যাকেট সাইজ তাৎক্ষণিক এসাইন করা যায়।",
+      en: "Sets dynamic global server variable without requiring service downtime or config edit."
+    },
+    proTips: [
+      "`1073741824` বাইট = ১ গিগাবাইট (1GB)",
+      "মাইএসকিউএল কনফিগ ফাইলে স্থায়ী করতে `/etc/mysql/mysql.conf.d/mysqld.cnf`-এ সেট করুন।"
+    ],
+    tags: ["optimization", "max_allowed_packet", "tuning", "config"],
+    syntax: "SET GLOBAL max_allowed_packet = 1073741824;"
+  },
+  {
+    id: "cmd-opt-2",
+    category: "optimization",
+    badge: "Stage 7: Process Monitor",
     title: {
       bn: "চলমান প্রসেস ও ঝুলন্ত কুয়েরি মনিটরিং (`SHOW PROCESSLIST`)",
-      en: "Monitor Active Running Queries & Locked Process Threads"
+      en: "Monitor Active Running Queries & Kill Locked Process Threads"
     },
     description: {
       bn: "কোন কোন কুয়েরি বা ইমপোর্ট সার্ভারে ব্যাকগ্রাউন্ডে চলছে এবং কোনটি আটকে (Locked) আছে তা ট্র্যাক করা।",
       en: "Displays all active client SQL query threads and execution durations."
     },
-    command: "SHOW FULL PROCESSLIST;",
+    command: "SHOW FULL PROCESSLIST;\nKILL 452;",
     difficulty: "Intermediate",
     whyCliOverGui: {
-      bn: "সার্ভার স্লো হলে তাৎক্ষণিক কোন কুয়েরি কত সেকেন্ড ধরে চলছে তা শনাক্ত করা যায়।",
+      bn: "সার্ভার স্লো হলে তাৎক্ষণিক কোন কুয়েরি কত সেকেন্ড ধরে চলছে তা শনাক্ত ও কিল করা যায়।",
       en: "Crucial for identifying CPU-intensive or deadlock-causing operations live."
     },
     proTips: [
       "যদি কোনো কুয়েরি ঝুলন্ত থাকে, তবে তার `Id` দেখে কিল করুন: `KILL <id>;`",
-      "আটকে থাকা প্রসেস কিল করতে: `KILL 452;`"
+      "শুধুমাত্র স্লো কুয়েরি দেখতে `Time` কলাম ইনস্পেক্ট করুন।"
     ],
-    tags: ["optimization", "processlist", "monitoring", "slow-query"],
-    syntax: "SHOW FULL PROCESSLIST;"
+    tags: ["optimization", "processlist", "kill", "monitoring"],
+    syntax: "SHOW FULL PROCESSLIST; KILL [process_id];"
   },
   {
-    id: "cmd-opt-2",
+    id: "cmd-opt-3",
     category: "optimization",
-    badge: "Stage 7: Maintenance",
+    badge: "Stage 7: Table Repair",
     title: {
       bn: "সব টেবিল একসাথে অপ্টিমাইজ ও ইনডেক্স ডিফ্র্যাগমেন্টেশন",
       en: "Batch Optimize & Defragment All Database Tables"
@@ -442,9 +628,9 @@ const COMMANDS_DATA = [
     syntax: "mysqlcheck -u [user] -p --optimize --databases [db]"
   },
   {
-    id: "cmd-opt-3",
+    id: "cmd-opt-4",
     category: "optimization",
-    badge: "Stage 7: Engine Doctor",
+    badge: "Stage 7: Engine Status",
     title: {
       bn: "InnoDB বাফার পুল, লক ও ট্রানজেকশন ইন্টারনালস ইনস্পেকশন",
       en: "Inspect InnoDB Engine Buffer Pool & Deadlock Diagnostics"

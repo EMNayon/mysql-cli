@@ -55,22 +55,17 @@
         
         <!-- Brand / Logo -->
         <div class="d-flex align-items-center gap-2 cursor-pointer" @click="currentTab = 'overview'">
-          <div class="p-2 rounded-3 bg-gradient d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #06b6d4, #10b981); width: 40px; height: 40px;">
-            <i class="fa-solid fa-database text-dark fs-5"></i>
-          </div>
+          <img src="images/logo.png" alt="MySQL CLI Pro Logo" class="rounded-3 shadow-sm object-fit-contain bg-dark p-1 border border-secondary border-opacity-25" style="height: 42px; width: auto; max-width: 150px;">
           <div>
             <div class="d-flex align-items-center gap-2">
               <span class="fw-bold fs-5 tracking-tight text-light">MySQL <span class="text-cyan">CLI Pro</span></span>
-              <span class="badge-custom badge-cyan d-none d-sm-inline-flex">v8.0+ Ready</span>
             </div>
             <div class="text-muted small bn-text d-none d-md-block" style="font-size: 0.75rem;">
-              <span x-show="lang === 'bn'">বড় ডাটাবেজ ইমপোর্ট, এক্সপোর্ট ও টার্মিনাল কমান্ড গাইড</span>
-              <span x-show="lang === 'en'">Heavy Database Import, Export & CLI Command Guide</span>
             </div>
           </div>
         </div>
 
-        <!-- Quick Search Bar -->
+        <!-- Quick Search Bar (Desktop) -->
         <div class="d-none d-md-flex align-items-center position-relative flex-grow-1 mx-3" style="max-width: 380px;">
           <i class="fa-solid fa-magnifying-glass position-absolute start-0 ms-3 text-muted"></i>
           <input 
@@ -101,43 +96,69 @@
 
       </div>
 
-      <!-- Navigation Tabs Bar -->
+      <!-- Mobile Quick Select & Search (Small Screens) -->
+      <div class="d-block d-md-none mt-2">
+        <div class="row g-2 align-items-center">
+          <div class="col-7">
+            <select class="form-select form-select-sm bg-dark border-cyan text-cyan rounded-pill font-monospace bn-text" x-model="currentTab">
+              <option value="overview">🏠 ১. ওভারভিউ ও পরিচিতি</option>
+              <option value="comparison">⚡ ২. CLI বনাম phpMyAdmin</option>
+              <option value="commands">💻 ৩. কমান্ড লাইব্রেরি (22)</option>
+              <option value="builder">🧙‍♂️ ৪. কমান্ড জেনারেটর</option>
+              <option value="terminal">🖥️ ৫. টার্মিনাল সিমুলেটর</option>
+              <option value="troubleshoot">🩺 ৬. এরর ডক্টর</option>
+              <option value="cheatsheet">📄 ৭. কুইক চিটশিট</option>
+            </select>
+          </div>
+          <div class="col-5">
+            <input 
+              type="text" 
+              class="form-control form-control-sm bg-dark border-secondary text-light rounded-pill bn-text" 
+              :placeholder="lang === 'bn' ? 'খুঁজুন...' : 'Search...'"
+              x-model="searchQuery"
+              @focus="if(currentTab !== 'commands') currentTab = 'commands'"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Bar (Scrollable Horizontal Pills) -->
       <nav class="nav-pill-custom mt-2 pt-1 border-top border-secondary border-opacity-25">
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'overview' }" @click="currentTab = 'overview'">
           <i class="fa-solid fa-house"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'ওভারভিউ ও পরিচিতি' : 'Overview'"></span>
+          <span class="bn-text" x-text="lang === 'bn' ? '১. ওভারভিউ' : '1. Overview'"></span>
         </button>
 
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'comparison' }" @click="currentTab = 'comparison'">
           <i class="fa-solid fa-bolt text-warning"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'CLI বনাম phpMyAdmin' : 'CLI vs phpMyAdmin'"></span>
+          <span class="bn-text" x-text="lang === 'bn' ? '২. CLI বনাম phpMyAdmin' : '2. Benchmark'"></span>
         </button>
 
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'commands' }" @click="currentTab = 'commands'">
           <i class="fa-solid fa-terminal text-cyan"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'কমান্ড লাইব্রেরি' : 'Command Library'"></span>
+          <span class="bn-text" x-text="lang === 'bn' ? '৩. কমান্ড লাইব্রেরি' : '3. Commands'"></span>
           <span class="badge bg-secondary rounded-pill" style="font-size: 0.65rem;" x-text="commands.length"></span>
         </button>
 
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'builder' }" @click="currentTab = 'builder'">
           <i class="fa-solid fa-wand-magic-sparkles text-emerald"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'কমান্ড জেনারেটর' : 'Command Builder'"></span>
+          <span class="bn-text" x-text="lang === 'bn' ? '৪. কমান্ড জেনারেটর' : '4. Builder'"></span>
         </button>
 
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'terminal' }" @click="currentTab = 'terminal'">
           <i class="fa-solid fa-square-poll-horizontal text-primary"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'টার্মিনাল সিমুলেটর' : 'Terminal Sandbox'"></span>
+          <span class="bn-text" x-text="lang === 'bn' ? '৫. টার্মিনাল সিমুলেটর' : '5. Terminal'"></span>
         </button>
 
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'troubleshoot' }" @click="currentTab = 'troubleshoot'">
           <i class="fa-solid fa-stethoscope text-rose"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'এরর ডক্টর (লগ ফিক্সার)' : 'Error Doctor'"></span>
-          <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Log Analysis</span>
+          <span class="bn-text" x-text="lang === 'bn' ? '৬. এরর ডক্টর' : '6. Error Doctor'"></span>
+          <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Logs</span>
         </button>
 
         <button class="nav-pill-btn" :class="{ 'active': currentTab === 'cheatsheet' }" @click="currentTab = 'cheatsheet'">
           <i class="fa-solid fa-file-lines text-info"></i>
-          <span class="bn-text" x-text="lang === 'bn' ? 'কুইক চিটশিট' : 'Cheat Sheet'"></span>
+          <span class="bn-text" x-text="lang === 'bn' ? '৭. চিটশিট' : '7. Cheat Sheet'"></span>
         </button>
       </nav>
     </div>
@@ -226,118 +247,161 @@
         </div>
       </div>
 
-      <!-- Real Workflow Session Breakdown -->
+      <!-- Real Workflow Session Timeline Stepper -->
       <div class="card feature-card p-4 mb-4">
-        <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
-          <i class="fa-solid fa-list-check text-cyan"></i>
-          <span class="bn-text" x-show="lang === 'bn'">আপনার প্রজেক্টের রিয়েল সেশন স্টেপ-বাই-স্টেপ গাইড</span>
-          <span x-show="lang === 'en'">Your Real-World Project Workflow Step-by-Step</span>
-        </h4>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <h4 class="fw-bold m-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-route text-cyan"></i>
+            <span class="bn-text" x-show="lang === 'bn'">আপনার প্রজেক্টের রিয়েল সেশন স্টেপ-বাই-স্টেপ টাইমলাইন</span>
+            <span x-show="lang === 'en'">Your Real-World Project Workflow Timeline</span>
+          </h4>
+          <span class="badge badge-custom badge-emerald">6 Production Steps</span>
+        </div>
+        
         <p class="text-muted bn-text mb-4">
           <span x-show="lang === 'bn'">
-            নিচে আপনার টার্মিনাল ট্রানজিটের সঠিক ক্রমানুসারে কমান্ডগুলো সাজিয়ে দেওয়া হলো, যা দিয়ে আপনি আপনার ১২৬টি টেবিল ওয়ালা ইআরপি ডাটাবেজ (<code>erp_publication_adhunik_v2_beta</code>) সম্পূর্ণ ইরর-মুক্তভাবে হ্যান্ডেল করতে পারবেন:
+            নিচে আপনার ১২৬টি টেবিল ওয়ালা ইআরপি ডাটাবেজ (<code>erp_publication_adhunik_v2_beta</code>) সম্পূর্ণ ক্র্যাশ ও এরর-মুক্তভাবে প্রসেস করার সঠিক সিকোয়েন্স টাইমলাইন দেওয়া হলো:
           </span>
           <span x-show="lang === 'en'">
-            Here is the clean, error-free workflow tailored directly to your ERP database session with 126 tables:
+            Here is the step-by-step interactive timeline tailored directly to your ERP database session with 126 tables:
           </span>
         </p>
 
-        <div class="row g-3">
+        <!-- Timeline Container -->
+        <div class="workflow-timeline">
+          
           <!-- Step 1 -->
-          <div class="col-md-6 col-xl-4">
-            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-primary">Step 1</span>
-                <button class="btn-copy" @click="copyToClipboard('mysql -u lighttecha1 -p')"><i class="fa-regular fa-copy"></i> Copy</button>
+          <div class="timeline-item">
+            <div class="timeline-node">1</div>
+            <div class="timeline-card">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-primary mb-1">Connection</span>
+                  <h6 class="fw-bold text-light m-0">Login to Local MySQL CLI Shell</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn-copy" @click="copyToClipboard('mysql -u lighttecha1 -p')"><i class="fa-regular fa-copy me-1"></i> Copy</button>
+                  <button class="btn-copy text-info" @click="runSampleInTerminal('mysql -u lighttecha1 -p')"><i class="fa-solid fa-play me-1"></i> Test</button>
+                </div>
               </div>
-              <h6 class="fw-bold text-light mb-1">Login to MySQL</h6>
               <div class="code-box my-2">
                 <div class="code-box-content p-2 small font-monospace">mysql -u lighttecha1 -p</div>
               </div>
-              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">নিরাপদে পাসওয়ার্ড প্রম্পটের মাধ্যমে MySQL কনসোলে প্রবেশ করুন।</p>
-              <p class="small text-muted m-0" x-show="lang === 'en'">Securely enter MySQL interactive prompt with hidden password entry.</p>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">নিরাপদে পাসওয়ার্ড প্রম্পটের মাধ্যমে MySQL কনসোলে প্রবেশ করুন। (পাসওয়ার্ড টাইপ করার সময় স্ক্রিনে অদৃশ্য থাকবে)</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Securely enter MySQL interactive prompt with hidden password prompt entry.</p>
             </div>
           </div>
 
           <!-- Step 2 -->
-          <div class="col-md-6 col-xl-4">
-            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-primary">Step 2</span>
-                <button class="btn-copy" @click="copyToClipboard('show databases;')"><i class="fa-regular fa-copy"></i> Copy</button>
+          <div class="timeline-item">
+            <div class="timeline-node">2</div>
+            <div class="timeline-card">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-primary mb-1">Context Switch</span>
+                  <h6 class="fw-bold text-light m-0">List & Switch to Target ERP Schema</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn-copy" @click="copyToClipboard('show databases;\nuse erp_publication_adhunik_v2_beta;')"><i class="fa-regular fa-copy me-1"></i> Copy</button>
+                  <button class="btn-copy text-info" @click="runSampleInTerminal('use erp_publication_adhunik_v2_beta;')"><i class="fa-solid fa-play me-1"></i> Test</button>
+                </div>
               </div>
-              <h6 class="fw-bold text-light mb-1">List & Switch Database</h6>
               <div class="code-box my-2">
-                <div class="code-box-content p-2 small font-monospace">show databases;<br>use erp_publication_adhunik_v2_beta;</div>
+                <div class="code-box-content p-2 small font-monospace">SHOW DATABASES;<br>USE erp_publication_adhunik_v2_beta;<br>SELECT DATABASE();</div>
               </div>
-              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">ডাটাবেজের লিস্ট দেখে কাঙ্ক্ষিত ডাটাবেজ সিলেক্ট করুন। (শেষে সেমিকোলন জরুরি)</p>
-              <p class="small text-muted m-0" x-show="lang === 'en'">List all schemas and switch to target database.</p>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">ডাটাবেজের লিস্ট দেখে কাঙ্ক্ষিত ডাটাবেজ সিলেক্ট করুন। <code>SELECT DATABASE();</code> দিয়ে কনফার্ম হয়ে নিন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">List all schemas and switch to target database with confirmation query.</p>
             </div>
           </div>
 
           <!-- Step 3 -->
-          <div class="col-md-6 col-xl-4">
-            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-success">Step 3 (Best Practice)</span>
-                <button class="btn-copy" @click="copyToClipboard('SET foreign_key_checks = 0; SET autocommit = 0; source adhunikp_beta_db.sql; COMMIT; SET foreign_key_checks = 1;')"><i class="fa-regular fa-copy"></i> Copy</button>
+          <div class="timeline-item">
+            <div class="timeline-node">3</div>
+            <div class="timeline-card border-success border-opacity-25">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-success mb-1">Turbo Import (Best Practice)</span>
+                  <h6 class="fw-bold text-light m-0">Import Huge Dump without Foreign Key Lock Errors</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn-copy" @click="copyToClipboard('SET foreign_key_checks = 0;\nSET autocommit = 0;\nsource adhunikp_beta_db.sql;\nCOMMIT;\nSET foreign_key_checks = 1;')"><i class="fa-regular fa-copy me-1"></i> Copy</button>
+                  <button class="btn-copy text-info" @click="runSampleInTerminal('source adhunikp_beta_db.sql')"><i class="fa-solid fa-play me-1"></i> Test</button>
+                </div>
               </div>
-              <h6 class="fw-bold text-light mb-1">Turbo Import (No Errors)</h6>
               <div class="code-box my-2">
-                <div class="code-box-content p-2 small font-monospace">SET foreign_key_checks = 0;<br>source adhunikp_beta_db.sql;<br>SET foreign_key_checks = 1;</div>
+                <div class="code-box-content p-2 small font-monospace">SET foreign_key_checks = 0;<br>SET autocommit = 0;<br>source adhunikp_beta_db.sql;<br>COMMIT;<br>SET foreign_key_checks = 1;</div>
               </div>
-              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">ফরেন কি এরর ও ডুপ্লিকেট কনস্ট্রেইন্ট ব্লক এড়াতে এই ট্রিকটি ব্যবহার করুন।</p>
-              <p class="small text-muted m-0" x-show="lang === 'en'">Disables FK constraint locks during import to prevent Error 1826.</p>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">ফরেন কি এরর (Error 1826) ও ডুপ্লিকেট কনস্ট্রেইন্ট ব্লক এড়াতে এই ট্রিকটি ব্যবহার করুন। মেমোরিতে সরাসরি ১০ গুণ দ্রুত ইমপোর্ট হবে।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Disables FK constraint locks during import to prevent Error 1826 and speeds up restoration by 10x.</p>
             </div>
           </div>
 
           <!-- Step 4 -->
-          <div class="col-md-6 col-xl-4">
-            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-info">Step 4</span>
-                <button class="btn-copy" @click="copyToClipboard('show tables;')"><i class="fa-regular fa-copy"></i> Copy</button>
+          <div class="timeline-item">
+            <div class="timeline-node">4</div>
+            <div class="timeline-card">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-info mb-1">Verification</span>
+                  <h6 class="fw-bold text-light m-0">Verify All 126 Tables & Row Counts</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn-copy" @click="copyToClipboard('show tables;\nselect count(*) from users;')"><i class="fa-regular fa-copy me-1"></i> Copy</button>
+                  <button class="btn-copy text-info" @click="runSampleInTerminal('show tables;')"><i class="fa-solid fa-play me-1"></i> Test</button>
+                </div>
               </div>
-              <h6 class="fw-bold text-light mb-1">Verify Tables & Rows</h6>
               <div class="code-box my-2">
-                <div class="code-box-content p-2 small font-monospace">show tables;<br>select count(*) from users;</div>
+                <div class="code-box-content p-2 small font-monospace">SHOW TABLES;<br>SELECT COUNT(*) FROM users;</div>
               </div>
-              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">সবগুলো ১২৬টি টেবিল ও রো সঠিকভাবে ইমপোর্ট হয়েছে কিনা যাচাই করুন।</p>
-              <p class="small text-muted m-0" x-show="lang === 'en'">Verify all 126 tables and row counts are restored.</p>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">সবগুলো ১২৬টি টেবিল ও প্রধান টেবিলগুলোর রো সঠিকভাবে ইমপোর্ট হয়েছে কিনা যাচাই করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Verify all 126 tables and row counts are restored completely.</p>
             </div>
           </div>
 
           <!-- Step 5 -->
-          <div class="col-md-6 col-xl-4">
-            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-warning text-dark">Alternative (Bash)</span>
-                <button class="btn-copy" @click="copyToClipboard('pv adhunikp_beta_db.sql | mysql -u lighttecha1 -p erp_publication_adhunik_v2_beta')"><i class="fa-regular fa-copy"></i> Copy</button>
+          <div class="timeline-item">
+            <div class="timeline-node">5</div>
+            <div class="timeline-card">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-warning text-dark mb-1">Bash Pipeline Alternative</span>
+                  <h6 class="fw-bold text-light m-0">Direct Pipe Stream with Live Progress Bar (`pv`)</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn-copy" @click="copyToClipboard('pv adhunikp_beta_db.sql | mysql -u lighttecha1 -p erp_publication_adhunik_v2_beta')"><i class="fa-regular fa-copy me-1"></i> Copy</button>
+                  <button class="btn-copy text-info" @click="runSampleInTerminal('pv adhunikp_beta_db.sql | mysql')"><i class="fa-solid fa-play me-1"></i> Test</button>
+                </div>
               </div>
-              <h6 class="fw-bold text-light mb-1">Direct Pipe with Progress</h6>
               <div class="code-box my-2">
                 <div class="code-box-content p-2 small font-monospace">pv adhunikp_beta_db.sql | mysql -u lighttecha1 -p erp_publication_adhunik_v2_beta</div>
               </div>
-              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">MySQL-এ না ঢুকে সরাসরি লিনাক্স ব্যাশ থেকে লাইভ প্রগ্রেস বার সহ ইমপোর্ট করুন।</p>
-              <p class="small text-muted m-0" x-show="lang === 'en'">Direct one-liner streaming from Linux bash with live byte progress.</p>
+              <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">MySQL-এ না ঢুকে সরাসরি লিনাক্স ব্যাশ থেকে লাইভ প্রগ্রেস বার ও গতি (MB/s) দেখিয়া ইমপোর্ট করুন।</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Direct one-liner streaming from Linux bash with live byte progress indicator.</p>
             </div>
           </div>
 
           <!-- Step 6 -->
-          <div class="col-md-6 col-xl-4">
-            <div class="p-3 rounded-3 h-100 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-secondary">Server Check</span>
-                <button class="btn-copy" @click="copyToClipboard('status;')"><i class="fa-regular fa-copy"></i> Copy</button>
+          <div class="timeline-item">
+            <div class="timeline-node">6</div>
+            <div class="timeline-card">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="badge bg-secondary mb-1">Server Diagnostics</span>
+                  <h6 class="fw-bold text-light m-0">Check Server Health & Socket Connection</h6>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn-copy" @click="copyToClipboard('status;')"><i class="fa-regular fa-copy me-1"></i> Copy</button>
+                  <button class="btn-copy text-info" @click="runSampleInTerminal('status;')"><i class="fa-solid fa-play me-1"></i> Test</button>
+                </div>
               </div>
-              <h6 class="fw-bold text-light mb-1">Check Server Health</h6>
               <div class="code-box my-2">
                 <div class="code-box-content p-2 small font-monospace">status;</div>
               </div>
               <p class="small text-muted bn-text m-0" x-show="lang === 'bn'">কানেকশন আইডি, সকেট পাথ, আপটাইম এবং ক্যারেক্টারসেট (utf8mb4) চেক করুন।</p>
-              <p class="small text-muted m-0" x-show="lang === 'en'">Inspect active UNIX socket, uptime, and utf8mb4 charset.</p>
+              <p class="small text-muted m-0" x-show="lang === 'en'">Inspect active UNIX socket, uptime, and utf8mb4 charset status.</p>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -600,7 +664,7 @@
                     <span class="badge-custom badge-cyan mb-1" x-text="cmd.badge"></span>
                     <h5 class="fw-bold text-light mb-1" x-text="lang === 'bn' ? cmd.title.bn : cmd.title.en"></h5>
                   </div>
-                  <span class="badge bg-secondary bg-opacity-50 text-light small" x-text="cmd.difficulty"></span>
+                  <span :class="cmd.difficulty === 'Beginner' ? 'badge-diff-beginner' : (cmd.difficulty === 'Intermediate' ? 'badge-diff-intermediate' : 'badge-diff-advanced')" x-text="cmd.difficulty"></span>
                 </div>
 
                 <!-- Description -->
